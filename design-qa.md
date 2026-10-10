@@ -20,6 +20,8 @@
 
 ## Current Fixes
 
+- Typography has been tuned to the source: Pretendard remains the font, but title/body weights now use softer 850/820/760/620 levels instead of blanket 900 weights.
+- Capture and video screens now use smaller source-like topbar titles, guide pill labels, slot labels, and control labels.
 - Photo capture now uses the source-like black device chrome, gray camera preview, floating guide pill, horizontal angle slot rail, shutter/count/finish controls, and Android navigation bar.
 - The shutter flow adds a captured thumbnail, advances to the next slot, updates the count, and keeps the slot delete affordance visible.
 - Video capture now uses a four-step template: exterior, interior, engine room, trunk. Each step shows a gray camera preview, white guide frame, active example card, inactive gray cards, red record control, capture/album tabs, and Android navigation bar.

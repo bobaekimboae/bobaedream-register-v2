@@ -15,6 +15,11 @@
   --red: #f03a4a;
   --blue: #2f6fdb;
   --shadow: 0 18px 45px rgba(20, 27, 38, 0.16);
+  --font-ui: "Pretendard", "Apple SD Gothic Neo", "Malgun Gothic", Arial, sans-serif;
+  --fw-title: 850;
+  --fw-section: 820;
+  --fw-strong: 760;
+  --fw-body: 620;
 }
 
 * {
@@ -26,21 +31,23 @@ body {
   margin: 0;
   min-height: 100%;
   overflow-x: hidden;
-  font-family: "Pretendard", "Apple SD Gothic Neo", "Malgun Gothic", Arial, sans-serif;
+  font-family: var(--font-ui);
 }
 
 body {
   color: var(--ink);
   background: var(--bg);
-  font-family: "Pretendard", "Apple SD Gothic Neo", "Malgun Gothic", Arial, sans-serif;
+  font-family: var(--font-ui);
   letter-spacing: 0;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: geometricPrecision;
 }
 
 button,
 input,
 textarea {
   font: inherit;
-  font-family: "Pretendard", "Apple SD Gothic Neo", "Malgun Gothic", Arial, sans-serif;
+  font-family: var(--font-ui);
 }
 
 button {
@@ -105,7 +112,7 @@ button {
   color: #151515;
   background: rgba(255, 255, 255, 0.96);
   font-size: 12px;
-  font-weight: 800;
+  font-weight: var(--fw-strong);
 }
 
 .status-icons {
@@ -289,8 +296,8 @@ button {
 
 .top-title h2 {
   margin: 0;
-  font-size: 22px;
-  font-weight: 900;
+  font-size: 21px;
+  font-weight: var(--fw-title);
   line-height: 1.1;
 }
 
@@ -299,7 +306,7 @@ button {
   margin-top: 4px;
   color: var(--orange);
   font-size: 12px;
-  font-weight: 800;
+  font-weight: 720;
 }
 
 .draft-link {
@@ -312,7 +319,7 @@ button {
   background: transparent;
   border: 0;
   font-size: 13px;
-  font-weight: 800;
+  font-weight: var(--fw-strong);
 }
 
 .badge {
@@ -373,14 +380,14 @@ button {
 .section-title h3 {
   margin: 0;
   font-size: 21px;
-  font-weight: 900;
+  font-weight: var(--fw-section);
   line-height: 1.15;
 }
 
 .required {
   color: var(--orange);
   font-size: 14px;
-  font-weight: 900;
+  font-weight: var(--fw-strong);
   white-space: nowrap;
 }
 
@@ -392,7 +399,7 @@ button {
   background: transparent;
   border: 0;
   font-size: 12px;
-  font-weight: 800;
+  font-weight: 700;
 }
 
 .field-line {
@@ -403,14 +410,14 @@ button {
   padding-bottom: 10px;
   border-bottom: 1px solid var(--line);
   font-size: 21px;
-  font-weight: 900;
+  font-weight: var(--fw-section);
 }
 
 .alert-copy {
   margin: -4px 0 17px;
   color: var(--red);
   font-size: 13px;
-  font-weight: 800;
+  font-weight: 730;
   line-height: 1.45;
 }
 
@@ -437,7 +444,7 @@ button {
   gap: 9px;
   color: #343941;
   font-size: 17px;
-  font-weight: 900;
+  font-weight: var(--fw-section);
 }
 
 .tip-icon {
@@ -456,13 +463,13 @@ button {
   margin: 15px 0 0 36px;
   color: #62666d;
   font-size: 15px;
-  font-weight: 700;
+  font-weight: 660;
   line-height: 1.68;
 }
 
 .tip-card b {
   color: var(--orange);
-  font-weight: 900;
+  font-weight: var(--fw-title);
 }
 
 .media-grid {
@@ -530,7 +537,7 @@ button {
   bottom: 7px;
   color: rgba(255, 255, 255, 0.82);
   font-size: 11px;
-  font-weight: 900;
+  font-weight: var(--fw-title);
 }
 
 .media-grid.is-completed .thumb::after {
@@ -570,7 +577,7 @@ button {
   padding-top: 6px;
   overflow: hidden;
   font-size: 13px;
-  font-weight: 800;
+  font-weight: 700;
   text-align: center;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -580,7 +587,7 @@ button {
   padding-top: 4px;
   color: #111;
   font-size: 13px;
-  font-weight: 600;
+  font-weight: 560;
 }
 
 .add-card {
@@ -614,13 +621,13 @@ button {
 
 .add-card span {
   font-size: 15px;
-  font-weight: 900;
+  font-weight: var(--fw-section);
 }
 
 .media-grid.is-completed .add-card span {
   color: #31343a;
   font-size: 14px;
-  font-weight: 800;
+  font-weight: var(--fw-strong);
 }
 
 .count-card {
@@ -645,7 +652,7 @@ button {
   border: 0;
   border-radius: 0;
   font-size: 14px;
-  font-weight: 800;
+  font-weight: 680;
 }
 
 .radio-button::before {
@@ -676,7 +683,7 @@ button {
   background: #fff;
   border: 1px solid #f3f3f3;
   border-radius: 0;
-  font-weight: 900;
+  font-weight: var(--fw-section);
 }
 
 .doc-upload .ui-icon {
@@ -702,12 +709,12 @@ button {
   padding: 0 2px;
   border-bottom: 1px solid var(--line);
   font-size: 15px;
-  font-weight: 900;
+  font-weight: 720;
 }
 
 .form-row span:last-child {
   color: var(--muted);
-  font-weight: 700;
+  font-weight: var(--fw-body);
 }
 
 .bottom-bar {
@@ -731,7 +738,7 @@ button {
   background: transparent;
   border: 0;
   font-size: 12px;
-  font-weight: 800;
+  font-weight: 720;
 }
 
 .primary-cta {
@@ -741,7 +748,7 @@ button {
   border: 0;
   border-radius: 999px;
   font-size: 20px;
-  font-weight: 900;
+  font-weight: var(--fw-title);
 }
 
 .camera-view,
@@ -766,8 +773,8 @@ button {
 
 .dark-topbar h2 {
   margin: 0;
-  font-size: 24px;
-  font-weight: 900;
+  font-size: 22px;
+  font-weight: var(--fw-title);
   text-align: center;
 }
 
@@ -803,8 +810,8 @@ button {
   color: #fff;
   background: rgba(180, 180, 180, 0.58);
   border-radius: 999px;
-  font-size: 16px;
-  font-weight: 900;
+  font-size: 14px;
+  font-weight: var(--fw-strong);
   text-align: center;
   transform: translateX(-50%);
 }
@@ -854,8 +861,8 @@ button {
   color: currentColor;
   background: transparent;
   border: 0;
-  font-size: 15px;
-  font-weight: 900;
+  font-size: 13px;
+  font-weight: var(--fw-strong);
 }
 
 .slot-card button:first-child::after {
@@ -903,7 +910,7 @@ button {
   background: transparent;
   border: 0;
   font-size: 12px;
-  font-weight: 800;
+  font-weight: 680;
 }
 
 .mask-toggle.is-active {
@@ -928,6 +935,7 @@ button {
 
 .counter-finish strong {
   font-size: 15px;
+  font-weight: var(--fw-strong);
 }
 
 .finish-small {
@@ -938,7 +946,7 @@ button {
   border: 0;
   border-radius: 999px;
   font-size: 13px;
-  font-weight: 900;
+  font-weight: var(--fw-strong);
 }
 
 .mode-tabs {
@@ -955,7 +963,7 @@ button {
   background: transparent;
   border: 0;
   border-bottom: 2px solid transparent;
-  font-weight: 900;
+  font-weight: var(--fw-strong);
 }
 
 .mode-tabs button.is-active {
@@ -1031,7 +1039,7 @@ button {
   color: #fff;
   background: var(--orange);
   border-radius: 999px;
-  font-weight: 900;
+  font-weight: var(--fw-title);
 }
 
 .preview-photo {
@@ -1086,7 +1094,7 @@ button {
   padding: 5px 3px;
   background: rgba(0, 0, 0, 0.72);
   font-size: 12px;
-  font-weight: 900;
+  font-weight: var(--fw-strong);
   text-align: center;
   pointer-events: none;
 }
@@ -1120,7 +1128,7 @@ button {
   background: transparent;
   border: 0;
   font-size: 12px;
-  font-weight: 900;
+  font-weight: var(--fw-strong);
 }
 
 .edit-tool.is-active {
@@ -1134,7 +1142,7 @@ button {
   border: 0;
   border-radius: 999px;
   font-size: 18px;
-  font-weight: 900;
+  font-weight: var(--fw-title);
 }
 
 .video-segments {
@@ -1165,7 +1173,7 @@ button {
   border: 0;
   border-radius: 4px;
   font-size: 11px;
-  font-weight: 900;
+  font-weight: 700;
 }
 
 .segment-step::before {
@@ -1188,6 +1196,7 @@ button {
   color: #fff;
   background: var(--orange);
   font-size: 11px;
+  font-weight: var(--fw-strong);
 }
 
 .segment-step b {
@@ -1198,6 +1207,7 @@ button {
   background: rgba(0, 0, 0, 0.38);
   color: currentColor;
   font-size: 12px;
+  font-weight: 680;
   line-height: 1.1;
   text-align: center;
 }
@@ -1252,7 +1262,7 @@ button {
   margin: 0;
   color: #fff;
   font-size: 18px;
-  font-weight: 700;
+  font-weight: var(--fw-body);
   text-align: center;
 }
 
@@ -1264,7 +1274,7 @@ button {
   background: transparent;
   border-radius: 999px;
   font-size: 13px;
-  font-weight: 900;
+  font-weight: var(--fw-strong);
 }
 
 .video-controls {
@@ -1299,7 +1309,7 @@ button {
   border: 0;
   border-radius: 999px;
   font-size: 13px;
-  font-weight: 900;
+  font-weight: var(--fw-strong);
 }
 
 .video-mode-tabs {
@@ -1338,7 +1348,7 @@ button {
 .sheet-body h3 {
   margin: 0 0 10px;
   font-size: 18px;
-  font-weight: 900;
+  font-weight: var(--fw-title);
 }
 
 .modal p,
@@ -1347,6 +1357,7 @@ button {
   color: var(--muted);
   font-size: 14px;
   line-height: 1.55;
+  font-weight: 560;
 }
 
 .modal-actions {
@@ -1359,7 +1370,7 @@ button {
   min-height: 48px;
   background: transparent;
   border: 0;
-  font-weight: 900;
+  font-weight: var(--fw-strong);
 }
 
 .modal-actions button + button {
@@ -1390,7 +1401,7 @@ button {
   border: 1px solid var(--line);
   border-radius: 6px;
   font-size: 12px;
-  font-weight: 800;
+  font-weight: 680;
 }
 
 .toast {
@@ -1403,7 +1414,7 @@ button {
   background: rgba(0, 0, 0, 0.78);
   border-radius: 999px;
   font-size: 13px;
-  font-weight: 800;
+  font-weight: 700;
   transform: translateX(-50%);
 }
 
