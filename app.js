@@ -41,8 +41,11 @@ const state = {
   previewTool: null,
   pendingDelete: null,
   videoSegment: 0,
+  videoMode: "camera",
   videoRecording: false,
+  videoRecordSeconds: 0,
   videoDone: false,
+  videoClip: null,
   modal: null,
   toast: "",
   dragIndex: null,
@@ -58,7 +61,9 @@ const liveCamera = {
   renderId: 0,
   recorder: null,
   chunks: [],
+  discardRecording: false,
 };
+const videoTimer = { id: null };
 
 const demoParams = new URLSearchParams(window.location.search);
 if (demoParams.get("empty") === "1") {
@@ -80,6 +85,7 @@ if (demoParams.get("modal") === "rules") state.modal = "rules";
 if (demoParams.get("modal") === "video-exit") {
   state.view = "video";
   state.videoRecording = true;
+  state.videoRecordSeconds = 8;
   state.modal = "video-exit";
 }
 if (demoParams.get("shot") === "1") {
@@ -273,11 +279,88 @@ function playRecordStopSound() {
   playBeep({ frequency: 440, duration: 0.07, gain: 0.1, type: "sine", delay: 0.075 });
 }
 
+function formatDuration(seconds) {
+  const safeSeconds = Math.max(0, Math.floor(seconds || 0));
+  const minutes = Math.floor(safeSeconds / 60);
+  const remainder = safeSeconds % 60;
+  return `${String(minutes).padStart(2, "0")}:${String(remainder).padStart(2, "0")}`;
+}
+
+function clearVideoTimer() {
+  window.clearInterval(videoTimer.id);
+  videoTimer.id = null;
+}
+
+function updateRecordTimerLabel() {
+  const label = screen.querySelector("[data-record-timer]");
+  if (label) label.textContent = state.videoRecording ? formatDuration(state.videoRecordSeconds) : "";
+}
+
+function startVideoTimer() {
+  clearVideoTimer();
+  state.videoRecordSeconds = 0;
+  updateRecordTimerLabel();
+  videoTimer.id = window.setInterval(() => {
+    state.videoRecordSeconds += 1;
+    updateRecordTimerLabel();
+  }, 1000);
+}
+
+function completeVideoCapture({ fromAlbum = false, duration = state.videoRecordSeconds || 5 } = {}) {
+  clearVideoTimer();
+  state.videoRecording = false;
+  state.videoRecordSeconds = 0;
+  state.videoDone = true;
+  state.videoClip = {
+    id: `video-${Date.now()}`,
+    duration: Math.max(5, Math.floor(duration || 5)),
+    thumbnail: videoTemplateImages[state.videoSegment] || videoTemplateImages[0],
+    label: "차량 영상",
+  };
+  state.progress = Math.max(state.progress, 42);
+  showToast(fromAlbum ? "앨범 영상이 등록되었습니다" : "영상이 등록되었습니다");
+}
+
+function advanceVideoSegment() {
+  if (state.videoRecording && state.videoRecordSeconds < 3) {
+    showToast("녹화 시간이 부족합니다");
+    return;
+  }
+  if (state.videoSegment < 3) {
+    state.videoSegment += 1;
+    if (state.videoRecording) {
+      state.videoRecordSeconds = 0;
+      render();
+      startVideoTimer();
+    } else {
+      render();
+    }
+    return;
+  }
+  if (liveCamera.recorder && liveCamera.recorder.state === "recording") {
+    liveCamera.recorder.stop();
+  } else {
+    completeVideoCapture();
+  }
+}
+
+function deleteVideoClip() {
+  clearVideoTimer();
+  state.videoRecording = false;
+  state.videoRecordSeconds = 0;
+  state.videoDone = false;
+  state.videoClip = null;
+  if (!state.photos.length) state.progress = 32;
+  showToast("영상이 삭제되었습니다");
+}
+
 function stopLiveCamera() {
   liveCamera.renderId += 1;
   if (liveCamera.recorder && liveCamera.recorder.state !== "inactive") {
+    liveCamera.discardRecording = !state.videoRecording;
     liveCamera.recorder.stop();
   }
+  clearVideoTimer();
   if (liveCamera.stream) {
     liveCamera.stream.getTracks().forEach((track) => track.stop());
   }
@@ -383,17 +466,28 @@ function capturePhotoFromLiveCamera() {
 }
 
 function toggleVideoRecording() {
-  if (!liveCamera.stream || typeof MediaRecorder === "undefined") {
-    openVideoCapture();
+  if (state.videoMode === "album") {
+    completeVideoCapture({ fromAlbum: true, duration: 12 });
+    setView("main");
     return;
   }
-  if (liveCamera.recorder && liveCamera.recorder.state === "recording") {
-    playRecordStopSound();
-    liveCamera.recorder.stop();
+
+  if (state.videoRecording || (liveCamera.recorder && liveCamera.recorder.state === "recording")) {
+    advanceVideoSegment();
     return;
   }
 
   playRecordStartSound();
+  state.videoRecording = true;
+  state.videoDone = false;
+  state.videoClip = null;
+  render();
+  startVideoTimer();
+
+  if (!liveCamera.stream || typeof MediaRecorder === "undefined") {
+    return;
+  }
+
   liveCamera.chunks = [];
   const recorderOptions = MediaRecorder.isTypeSupported("video/webm") ? { mimeType: "video/webm" } : undefined;
   const recorder = new MediaRecorder(liveCamera.stream, recorderOptions);
@@ -402,15 +496,14 @@ function toggleVideoRecording() {
     if (event.data?.size) liveCamera.chunks.push(event.data);
   });
   recorder.addEventListener("stop", () => {
+    if (liveCamera.discardRecording) {
+      liveCamera.discardRecording = false;
+      return;
+    }
     const blob = new Blob(liveCamera.chunks, { type: "video/webm" });
-    state.videoDone = blob.size > 0;
-    state.videoRecording = false;
-    state.progress = Math.max(state.progress, 42);
-    showToast("영상이 등록되었습니다");
+    completeVideoCapture({ duration: state.videoRecordSeconds || (blob.size > 0 ? 5 : 0) });
   });
   recorder.start();
-  state.videoRecording = true;
-  render();
 }
 
 function firstMissingSlot() {
@@ -572,8 +665,22 @@ function movePhoto(from, to) {
   render();
 }
 
+function videoCardMarkup() {
+  if (!state.videoDone || !state.videoClip) return "";
+  return `
+    <div class="media-card video-result-card">
+      <button class="video-thumb" data-action="video" type="button" aria-label="영상 수정">
+        <span class="video-thumb-layer" style="background-image:url('${state.videoClip.thumbnail}')"></span>
+        <span class="video-play">${icon("play", 18)}</span>
+        <span class="video-duration">${formatDuration(state.videoClip.duration)}</span>
+      </button>
+      <button class="delete-chip" data-action="video-delete" aria-label="영상 삭제">${icon("x", 15)}</button>
+      <label>${state.videoClip.label}</label>
+    </div>`;
+}
+
 function mainView() {
-  const completed = state.photos.length > 0;
+  const completed = state.photos.length > 0 || state.videoDone;
   return `
     <div class="app-view">
       <header class="topbar">
@@ -633,10 +740,14 @@ function mainView() {
               ${uploadAssetIcon("photo", 42)}
               <span>${completed ? `${state.photos.length}/30` : "사진 추가"}</span>
             </button>
-            <button class="add-card" type="button" data-action="video">
-              ${uploadAssetIcon("video", 42)}
-              <span>${state.videoDone ? "영상 완료" : "영상 추가"}</span>
-            </button>
+            ${
+              state.videoDone && state.videoClip
+                ? videoCardMarkup()
+                : `<button class="add-card" type="button" data-action="video">
+                    ${uploadAssetIcon("video", 42)}
+                    <span>영상 추가</span>
+                  </button>`
+            }
           </div>
         </section>
 
@@ -791,6 +902,7 @@ function previewView() {
 
 function videoView() {
   const segmentNames = ["차량외관", "차내장식", "엔진룸", "트렁크"];
+  const albumMode = state.videoMode === "album";
   return `
     <div class="video-view">
       <header class="dark-topbar">
@@ -798,28 +910,41 @@ function videoView() {
         <h2>차량 영상</h2>
         <button class="icon-button dark-button flash-button" type="button" aria-label="플래시">${icon("zap", 31)}</button>
       </header>
-      <div class="video-stage" data-camera-stage>
-        <video class="live-camera-feed" data-camera-preview playsinline autoplay muted></video>
-        <div class="guide-pill">촬영 ${segmentNames[state.videoSegment]}</div>
-        <div class="video-frame-line"></div>
-        <p class="video-guide-copy">촬영 항목이 맞는지 확인해 주세요</p>
-        <p class="camera-permission-copy video-permission-copy" data-camera-error>카메라 권한을 허용하면 실제 화면이 표시됩니다.</p>
-      </div>
-      <div class="video-segments">
-        ${segmentNames
-          .map(
-            (name, index) => `<button class="segment-step ${state.videoSegment === index ? "is-active" : ""}" data-action="video-segment" data-index="${index}" type="button" style="--segment-image:url('${videoTemplateImages[index]}')"><span>${index === state.videoSegment ? "예시" : ""}</span><b>${name}</b></button>`,
-          )
-          .join("")}
-      </div>
-      <div class="video-controls">
-        <span class="record-timer">${state.videoRecording ? "00:08" : ""}</span>
-        <button class="record-button ${state.videoRecording ? "is-recording" : ""}" data-action="record" type="button" aria-label="녹화"></button>
-        <button class="next-video" data-action="video-next" type="button">${state.videoSegment === 3 ? "완료" : "다음"}</button>
-      </div>
+      ${
+        albumMode
+          ? `<div class="video-album-panel">
+              <p class="album-guide-pill">앨범 영상을 선택하면 메인 등록 화면에 썸네일이 생성됩니다.</p>
+              <div class="video-album-grid">
+                ${videoTemplateImages
+                  .map(
+                    (src, index) => `<button class="video-album-item" data-action="video-album-pick" data-index="${index}" style="background-image:url('${src}')" aria-label="${segmentNames[index]} 영상 선택"><span>${segmentNames[index]}</span>${icon("play", 22)}</button>`,
+                  )
+                  .join("")}
+              </div>
+            </div>`
+          : `<div class="video-stage" data-camera-stage>
+              <video class="live-camera-feed" data-camera-preview playsinline autoplay muted></video>
+              <div class="guide-pill">촬영 ${segmentNames[state.videoSegment]}</div>
+              <div class="video-frame-line"></div>
+              <p class="video-guide-copy">촬영 항목이 맞는지 확인해 주세요</p>
+              <p class="camera-permission-copy video-permission-copy" data-camera-error>카메라 권한을 허용하면 실제 화면이 표시됩니다.</p>
+            </div>
+            <div class="video-segments">
+              ${segmentNames
+                .map(
+                  (name, index) => `<button class="segment-step ${state.videoSegment === index ? "is-active" : ""}" data-action="video-segment" data-index="${index}" type="button" style="--segment-image:url('${videoTemplateImages[index]}')"><span>${index === state.videoSegment ? "예시" : ""}</span><b>${name}</b></button>`,
+                )
+                .join("")}
+            </div>
+            <div class="video-controls">
+              <span class="record-timer" data-record-timer>${state.videoRecording ? formatDuration(state.videoRecordSeconds) : ""}</span>
+              <button class="record-button ${state.videoRecording ? "is-recording" : ""}" data-action="record" type="button" aria-label="${state.videoRecording ? "녹화 중지" : "녹화"}"></button>
+              <button class="next-video" data-action="video-next" type="button">${state.videoRecording ? "완료" : state.videoSegment === 3 ? "완료" : "다음"}</button>
+            </div>`
+      }
       <div class="mode-tabs video-mode-tabs">
-        <button class="is-active" type="button">촬영</button>
-        <button type="button">앨범</button>
+        <button class="${!albumMode ? "is-active" : ""}" data-action="video-mode-camera" type="button">촬영</button>
+        <button class="${albumMode ? "is-active" : ""}" data-action="video-mode-album" type="button">앨범</button>
       </div>
       ${androidNav()}
       ${modalLayer()}
@@ -881,7 +1006,7 @@ function render() {
   updateIcons();
   if (state.view === "camera" && state.cameraMode === "camera") {
     startLiveCamera("photo");
-  } else if (state.view === "video") {
+  } else if (state.view === "video" && state.videoMode === "camera") {
     startLiveCamera("video");
   } else {
     stopLiveCamera();
@@ -935,7 +1060,11 @@ function bindEvents() {
         state.cameraMode = "camera";
         setView("camera");
       }
-      if (action === "video") setView("video");
+      if (action === "video") {
+        state.videoMode = "camera";
+        setView("video");
+      }
+      if (action === "video-delete") deleteVideoClip();
       if (action === "verify") {
         state.verification = target.dataset.value;
         render();
@@ -1021,24 +1150,34 @@ function bindEvents() {
         }
       }
       if (action === "video-exit-confirm") {
+        clearVideoTimer();
         state.videoRecording = false;
         setView("main");
       }
       if (action === "video-segment") {
-        state.videoSegment = Number(target.dataset.index);
-        render();
+        if (!state.videoRecording) {
+          state.videoSegment = Number(target.dataset.index);
+          render();
+        }
       }
       if (action === "record") toggleVideoRecording();
       if (action === "video-next") {
+        advanceVideoSegment();
+      }
+      if (action === "video-mode-camera") {
+        state.videoMode = "camera";
+        render();
+      }
+      if (action === "video-mode-album") {
+        state.videoMode = "album";
+        clearVideoTimer();
         state.videoRecording = false;
-        if (state.videoSegment < 3) {
-          state.videoSegment += 1;
-          render();
-        } else {
-          state.videoDone = true;
-          state.progress = Math.max(state.progress, 42);
-          setView("main");
-        }
+        render();
+      }
+      if (action === "video-album-pick") {
+        state.videoSegment = Number(target.dataset.index) || 0;
+        completeVideoCapture({ fromAlbum: true, duration: 12 });
+        setView("main");
       }
     });
   });
