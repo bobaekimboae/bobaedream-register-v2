@@ -896,12 +896,12 @@ button {
 
 .camera-view {
   display: grid;
-  grid-template-rows: 58px minmax(0, 1fr) 104px 50px 54px;
+  grid-template-rows: 58px minmax(0, 1fr) 104px 50px;
 }
 
 .video-view {
   display: grid;
-  grid-template-rows: 58px minmax(0, 1fr) 104px 50px 54px;
+  grid-template-rows: 58px minmax(0, 1fr) 104px 50px;
 }
 
 .dark-topbar {
@@ -998,7 +998,7 @@ button {
   position: absolute;
   left: 0;
   right: 0;
-  bottom: 208px;
+  bottom: 154px;
   display: flex;
   gap: 7px;
   overflow-x: auto;
@@ -1178,12 +1178,12 @@ button {
 }
 
 .android-nav {
+  display: none;
   position: relative;
   left: 0;
   right: 0;
   bottom: auto;
   z-index: 8;
-  display: grid;
   grid-template-columns: repeat(3, 1fr);
   align-items: center;
   justify-items: center;
@@ -1455,7 +1455,7 @@ button {
   position: absolute;
   left: 0;
   right: 0;
-  bottom: 208px;
+  bottom: 154px;
   z-index: 3;
   display: flex;
   gap: 9px;
