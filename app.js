@@ -953,7 +953,7 @@ function videoView() {
 }
 
 function androidNav() {
-  return `<div class="android-nav" aria-hidden="true"><span class="nav-square"></span><span class="nav-circle"></span><span class="nav-triangle"></span></div>`;
+  return "";
 }
 
 function modalLayer() {
