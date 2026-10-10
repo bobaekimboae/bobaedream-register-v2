@@ -1,11 +1,22 @@
 **Findings**
-- No P0/P1/P2 issues found in the verified prototype pass.
+- [P1] Earlier deployed version did not visually match the 58.com registration reference.
+  Location: main registration top screen.
+  Evidence: `side-by-side-main-top.png` showed the implementation using a black phone frame, desktop notes panel, gray app background, 4-column media grid, segmented verification buttons, and wide spacing. The source uses a full white mobile canvas, compact centered header, 2-column photo/video upload box, radio-style verification row, and full-width verification card.
+  Impact: the screen read as a rough Bobaedream adaptation, not a faithful 58-style registration flow.
+  Fix: removed the device bezel/notes panel, rebuilt the main top layout as a white mobile screen, changed media upload to a 2-column boxed control, changed verification to radio controls, widened the verification capture card, hid the scrollbar, and tightened vertical rhythm.
+
+- [P2] Remaining drift after the latest main-screen pass.
+  Location: main registration top screen.
+  Evidence: `side-by-side-main-after-fix-4.png` is much closer structurally, but Korean labels are longer/heavier than the original Chinese labels, the icon art is still a recreated inline SVG set rather than exact extracted source assets, and some vertical rhythm remains slightly denser in the verification/VIN area.
+  Impact: acceptable for a Bobaedream-localized draft, not acceptable for a pixel-faithful clone.
+  Fix: either switch the visible copy to the same-length source copy for clone QA, or define Korean copy-specific typography rules and use exported original icon assets.
 
 **Evidence**
 - Source visual truth path: `C:\Users\bobae\AppData\Local\Temp\58-media-registration-audit\screenshots\74-main-two-photos-after-load.png`
 - Additional source states referenced: `53-photo-crosscheck-empty-current.png`, `65-main-photo-thumb-body-tap.png`, `77-preview-two-photos-after-main-reorder.png`, `42-video-record-exit-confirm.png`
 - Implementation URL: `http://127.0.0.1:4174/`
 - Implementation screenshot path: `C:\Users\bobae\AppData\Local\Temp\58-media-registration-audit\bobaedream-register-v2-final-top.png`
+- Latest comparison screenshot path: `C:\Users\bobae\AppData\Local\Temp\58-media-registration-audit\compare-current\side-by-side-main-after-fix-4.png`
 - Viewport/state: Chrome desktop viewport showing a 390 x 844 mobile phone frame, main register state.
 - Source and implementation dimensions: source Android screenshots are 921 x 2048 pixels; implementation is browser-rendered in a 390 px-wide phone frame inside a desktop canvas. This is an adapted Bobaedream V2 prototype, not a pixel-for-pixel 58.com clone.
 - Full-view comparison evidence: compared the source main media area, camera state, preview/editor state, and video flow against the rendered Bobaedream V2 prototype. The prototype preserves the core structure: progress header, required media area, shooting rules, photo/video entry tiles, verification group, fixed bottom action, guided camera slots, preview tools, and 4-step video capture.
@@ -52,4 +63,4 @@
 - P3: Add a collapsed/expanded state for the missing-angle tip card.
 - P3: Add more realistic crop/rotate/mosaic tool panels after the preview toolbar selection.
 
-final result: passed
+final result: blocked

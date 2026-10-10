@@ -191,13 +191,13 @@ function mainView() {
 
       <div class="scroll-body">
         <section class="section">
-          <div class="section-title"><h3>차량 소재지</h3><span class="required">필수</span></div>
+          <div class="section-title"><div class="title-with-required"><h3>차량 소재지</h3><span class="required">(필수)</span></div></div>
           <div class="field-line"><span>${state.city}</span>${icon("chevron-right", 20)}</div>
         </section>
 
         <section class="section">
           <div class="section-title">
-            <h3>${completed ? "차량 이미지 등록 완료" : "사진 및 영상 등록"}</h3>
+            <div class="title-with-required"><h3>${completed ? "사진 등록 완료" : "사진/영상 등록"}</h3><span class="required">(필수)</span></div>
             <button class="help-link" type="button" data-action="rules">${icon("circle-help", 16)} 촬영규칙</button>
           </div>
           <p class="alert-copy">첫 사진은 좌전 45° 차량 사진을 사용하면 목록 노출 효과가 좋습니다.</p>
@@ -222,17 +222,17 @@ function mainView() {
               .join("")}
             <button class="add-card count-card" type="button" data-action="photo-camera">
               ${icon("image-upload", 38)}
-              <span>${state.photos.length}/30</span>
+              <span>${completed ? `${state.photos.length}/30` : "사진 추가"}</span>
             </button>
             <button class="add-card" type="button" data-action="video">
               ${icon(state.videoDone ? "badge-check" : "video", 34)}
-              <span>${state.videoDone ? "영상완료" : "영상추가"}</span>
+              <span>${state.videoDone ? "영상 완료" : "영상 추가"}</span>
             </button>
           </div>
         </section>
 
         <section class="section">
-          <div class="section-title"><h3>차량 인증</h3><span class="required">하나 선택</span></div>
+          <div class="section-title"><div class="title-with-required"><h3>차량 인증</h3><span class="required">(하나 선택)</span></div></div>
           <div class="radio-row">
             ${["등록증", "성능기록", "차량명판"]
               .map(
@@ -247,7 +247,7 @@ function mainView() {
         </section>
 
         <section class="section">
-          <div class="section-title"><h3>차량 정보</h3><span class="required">필수</span></div>
+          <div class="section-title"><div class="title-with-required"><h3>VIN번호</h3><span class="required">(필수)</span>${icon("circle-help", 17)}</div></div>
           <div class="field-card">
             ${[
               ["제조사/모델", "현대 쏘나타"],
