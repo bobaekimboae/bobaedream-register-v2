@@ -43,14 +43,41 @@ const state = {
 
 const screen = document.querySelector("#screenRoot");
 
+const iconPaths = {
+  "chevron-left": '<path d="M15.5 5 8.5 12l7 7"/>',
+  "chevron-right": '<path d="M8.5 5 15.5 12l-7 7"/>',
+  x: '<path d="M6.5 6.5 17.5 17.5"/><path d="m17.5 6.5-11 11"/>',
+  "circle-help":
+    '<circle cx="12" cy="12" r="9"/><path d="M9.7 9.2c.4-1.5 1.6-2.4 3.2-2.2 1.5.2 2.6 1.2 2.6 2.6 0 1.2-.7 1.9-1.9 2.6-.9.5-1.3 1.1-1.3 2.1"/><path d="M12.2 17.2h.1"/>',
+  "message-circle": '<path d="M5.2 18.1 4 21l3.4-1.1A8.2 8.2 0 1 0 5.2 18.1Z"/><path d="M8.3 10.4h7.4"/><path d="M8.3 13.6h5.2"/>',
+  "trash-2":
+    '<path d="M8 8.5v9"/><path d="M12 8.5v9"/><path d="M16 8.5v9"/><path d="M5.2 6.2h13.6"/><path d="M9 6.2l.7-2h4.6l.7 2"/><path d="M7 6.2 8 20h8l1-13.8"/>',
+  camera:
+    '<rect x="3.5" y="7" width="17" height="12" rx="2.4"/><path d="M8.4 7 9.8 4.7h4.4L15.6 7"/><circle cx="12" cy="13" r="3.4"/><path d="M17.2 9.4h.1"/>',
+  "image-upload":
+    '<rect x="3.5" y="5" width="17" height="14" rx="2.5"/><path d="m6.5 16.5 3.3-3.3 2.6 2.4 1.9-1.9 3.2 2.8"/><circle cx="15.8" cy="9" r="1.3"/><path d="M12 15.5V8.8"/><path d="m9.3 11.3 2.7-2.7 2.7 2.7"/>',
+  video:
+    '<rect x="3.5" y="6.5" width="12.3" height="11" rx="2.2"/><path d="m15.8 10.1 4.7-2.6v9l-4.7-2.6Z"/><path d="M8.7 10.1v3.8l3.3-1.9Z"/>',
+  "badge-check": '<circle cx="12" cy="12" r="9"/><path d="m7.8 12.2 2.8 2.8 5.8-6.1"/>',
+  badge:
+    '<rect x="5" y="3.8" width="14" height="16.4" rx="2.5"/><path d="M8.2 8.3h7.6"/><path d="M8.2 12h7.6"/><path d="M8.2 15.7h5.2"/>',
+  archive: '<path d="M4.5 7.2h15"/><path d="M6.2 7.2v11h11.6v-11"/><path d="M8 4.2h8l1.5 3H6.5Z"/><path d="M9.7 11.2h4.6"/>',
+  "scan-face":
+    '<path d="M4.5 9V5.8c0-.7.6-1.3 1.3-1.3H9"/><path d="M15 4.5h3.2c.7 0 1.3.6 1.3 1.3V9"/><path d="M19.5 15v3.2c0 .7-.6 1.3-1.3 1.3H15"/><path d="M9 19.5H5.8c-.7 0-1.3-.6-1.3-1.3V15"/><path d="M8.4 12.8c1.7 1.8 5.5 1.8 7.2 0"/><path d="M9.2 9.5h.1"/><path d="M14.7 9.5h.1"/>',
+  grip: '<path d="M9 6.5h.1"/><path d="M15 6.5h.1"/><path d="M9 12h.1"/><path d="M15 12h.1"/><path d="M9 17.5h.1"/><path d="M15 17.5h.1"/>',
+  "rotate-cw": '<path d="M17.7 8.3A6.7 6.7 0 1 0 18 16"/><path d="M17.7 4.5v3.8h-3.8"/>',
+  crop: '<path d="M7 3.8v13.2h13.2"/><path d="M3.8 7h13.2v13.2"/><path d="M17 7v-3.2"/><path d="M7 17H3.8"/>',
+  plus: '<path d="M12 5v14"/><path d="M5 12h14"/>',
+  play: '<path d="M8.5 5.8v12.4L18 12Z"/>',
+};
+
 function icon(name, size = 21) {
-  return `<i data-lucide="${name}" style="width:${size}px;height:${size}px"></i>`;
+  const path = iconPaths[name] || iconPaths["circle-help"];
+  return `<svg class="ui-icon ui-icon-${name}" viewBox="0 0 24 24" aria-hidden="true" style="width:${size}px;height:${size}px">${path}</svg>`;
 }
 
 function updateIcons() {
-  if (window.lucide) {
-    window.lucide.createIcons();
-  }
+  return true;
 }
 
 function setView(view) {
@@ -194,7 +221,7 @@ function mainView() {
               )
               .join("")}
             <button class="add-card count-card" type="button" data-action="photo-camera">
-              ${icon("camera", 34)}
+              ${icon("image-upload", 38)}
               <span>${state.photos.length}/30</span>
             </button>
             <button class="add-card" type="button" data-action="video">
@@ -279,7 +306,7 @@ function cameraView() {
                 .join("")}
             </div>
             <div class="camera-controls">
-              <button class="mask-toggle ${state.maskPlate ? "is-active" : ""}" data-action="mask" type="button">${icon("scan-face", 22)}번호판가림</button>
+        <button class="mask-toggle ${state.maskPlate ? "is-active" : ""}" data-action="mask" type="button">${icon("scan-face", 22)}번호판가림</button>
               <button class="shutter" data-action="shutter" type="button" aria-label="촬영"></button>
               <div class="counter-finish">
                 <strong>${state.photos.length}/30</strong>
@@ -310,7 +337,7 @@ function previewView() {
       </header>
       <div class="preview-photo" style="background-image:url('${photo.src}')"></div>
       <div class="preview-rail">
-        <button class="preview-add" data-action="preview-add" type="button" aria-label="사진 추가">+</button>
+        <button class="preview-add" data-action="preview-add" type="button" aria-label="사진 추가">${icon("plus", 30)}</button>
         ${state.photos
           .map(
             (item, index) => `

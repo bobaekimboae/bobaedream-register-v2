@@ -15,7 +15,7 @@
 - Fonts and typography: Korean mobile UI hierarchy is consistent and readable. Headers use strong weight, required labels use orange emphasis, and small labels remain legible. No text overlap was observed in the tested states.
 - Spacing and layout rhythm: Section spacing, thumbnail grid, fixed bottom CTA, and black camera/preview surfaces match the source flow density while using Bobaedream-style Korean content.
 - Colors and visual tokens: Orange/red required and warning states, white cards, black camera surfaces, and yellow Bobaedream accent are consistent. The main CTA intentionally uses an orange gradient similar to the source flow's publish button treatment.
-- Image quality and asset fidelity: Vehicle thumbnails use real raster remote images and crop into square slots. UI icons are rendered through the Lucide icon library. Exact Notion icon assets were not imported in this pass.
+- Image quality and asset fidelity: Vehicle thumbnails use real raster remote images and crop into square slots. UI icons were replaced with a self-contained SVG icon set based on the Notion icon database categories: `매물 등록용 아이콘`, `UI 기본 아이콘`, `셰브론_화살표`, `이미지/영상/멀티미디어`, `삭제`, and `체크마크`. No external icon CDN remains.
 - Copy and app-specific text: Copy is localized to Bobaedream registration while preserving the source behavior: first-photo guidance, missing angle guidance, real-shot verification, photo count, and video segment labels.
 
 **Interactions Tested**
@@ -28,6 +28,7 @@
 - Preview add returns to camera.
 - Video flow opens, records, advances from exterior to interior, and shows segment state.
 - Browser console error check returned no errors.
+- Icon QA: local browser check found 0 Lucide leftovers, 14 inline SVG icons on the main-with-photo state, 2 inline SVG icons in the camera state, and no text/button overflow in the checked main/camera states.
 
 **Comparison History**
 - Earlier finding: preview thumbnail had a nested button for delete, creating an accessibility/DOM issue.
@@ -38,14 +39,13 @@
 - Post-fix evidence: no console errors after reload and interaction pass.
 
 **Open Questions**
-- Exact Notion icon assets can replace the current Lucide icons once the asset files are exported from the Notion icon library.
 - The current prototype uses remote sample car images. Production should use uploaded user media and local blob previews.
 
 **Implementation Checklist**
 - Keep the current main/camera/preview/video state machine.
 - Replace remote sample image URLs with uploaded file object URLs in production.
 - Wire drag order to persisted media ordering, while keeping angle validation order separate.
-- Swap Lucide icons with final Notion icon assets if required.
+- Keep the self-contained SVG icons in source control so the prototype does not break from expired Notion attachment URLs.
 
 **Follow-up Polish**
 - P3: Add animated reorder affordance when dragging thumbnails.

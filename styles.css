@@ -42,6 +42,26 @@ button {
   -webkit-tap-highlight-color: transparent;
 }
 
+.ui-icon {
+  display: inline-block;
+  flex: 0 0 auto;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2.35;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  vertical-align: middle;
+}
+
+.ui-icon-grip {
+  stroke-width: 4;
+}
+
+.ui-icon-play {
+  fill: currentColor;
+  stroke: currentColor;
+}
+
 .prototype-shell {
   display: grid;
   grid-template-columns: auto 360px;
@@ -160,16 +180,16 @@ button {
 
 .topbar-row {
   display: grid;
-  grid-template-columns: 46px 1fr 66px;
+  grid-template-columns: 48px 1fr 74px;
   align-items: center;
-  min-height: 54px;
+  min-height: 52px;
 }
 
 .icon-button {
   display: inline-grid;
   place-items: center;
-  width: 42px;
-  height: 42px;
+  width: 44px;
+  height: 44px;
   color: var(--ink);
   background: transparent;
   border: 0;
@@ -187,7 +207,7 @@ button {
 
 .top-title h2 {
   margin: 0;
-  font-size: 20px;
+  font-size: 18px;
   font-weight: 900;
   line-height: 1.1;
 }
@@ -203,7 +223,9 @@ button {
 .draft-link {
   position: relative;
   justify-self: end;
-  margin-right: 12px;
+  width: 58px;
+  margin-right: 10px;
+  padding: 0;
   color: var(--ink);
   background: transparent;
   border: 0;
@@ -213,8 +235,8 @@ button {
 
 .badge {
   position: absolute;
-  right: -8px;
-  top: -8px;
+  right: 0;
+  top: -9px;
   min-width: 19px;
   height: 19px;
   padding: 0 5px;
@@ -239,11 +261,11 @@ button {
 .scroll-body {
   height: calc(100% - 58px);
   overflow: auto;
-  padding: 22px 18px 118px;
+  padding: 18px 16px 118px;
 }
 
 .section {
-  margin-bottom: 26px;
+  margin-bottom: 22px;
 }
 
 .section-title {
@@ -256,7 +278,7 @@ button {
 
 .section-title h3 {
   margin: 0;
-  font-size: 23px;
+  font-size: 21px;
   font-weight: 900;
   line-height: 1.15;
 }
@@ -332,7 +354,7 @@ button {
 .media-grid {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 9px;
+  gap: 8px;
   align-items: start;
 }
 
@@ -350,8 +372,8 @@ button {
   aspect-ratio: 1;
   overflow: hidden;
   background: #fff;
-  border: 1px solid #eceff3;
-  border-radius: 6px;
+  border: 1px solid #dfe3e8;
+  border-radius: 4px;
 }
 
 .thumb {
@@ -376,8 +398,8 @@ button {
   z-index: 2;
   display: grid;
   place-items: center;
-  width: 28px;
-  height: 28px;
+  width: 24px;
+  height: 24px;
   color: #fff;
   background: rgba(0, 0, 0, 0.52);
   border: 0;
@@ -386,7 +408,7 @@ button {
 
 .media-card label {
   display: block;
-  padding-top: 7px;
+  padding-top: 6px;
   overflow: hidden;
   font-size: 13px;
   font-weight: 800;
@@ -396,16 +418,16 @@ button {
 }
 
 .add-card {
-  gap: 5px;
+  gap: 4px;
   color: var(--ink);
   background: #fff;
   border: 1px solid #eff1f5;
-  border-radius: 3px;
+  border-radius: 4px;
   cursor: pointer;
 }
 
-.add-card i {
-  color: #2c3137;
+.add-card .ui-icon {
+  color: #222831;
 }
 
 .add-card span {
@@ -522,7 +544,7 @@ button {
 
 .dark-topbar {
   display: grid;
-  grid-template-columns: 54px 1fr 76px;
+  grid-template-columns: 54px 1fr 54px;
   align-items: center;
   min-height: 58px;
   padding: 0 8px;
@@ -584,7 +606,7 @@ button {
 
 .slot-rail {
   display: flex;
-  gap: 8px;
+  gap: 7px;
   overflow-x: auto;
   padding: 10px 12px;
   background: #0d0f12;
@@ -597,11 +619,11 @@ button {
 
 .slot-card {
   position: relative;
-  flex: 0 0 76px;
+  flex: 0 0 72px;
   color: #d7dbe0;
   background: #1a1d22;
   border: 2px solid transparent;
-  border-radius: 8px;
+  border-radius: 5px;
 }
 
 .slot-card.is-active {
@@ -617,7 +639,7 @@ button {
   display: grid;
   place-items: end center;
   width: 100%;
-  height: 76px;
+  height: 72px;
   padding: 0 4px 6px;
   color: currentColor;
   background: transparent;
@@ -637,8 +659,8 @@ button {
   top: -6px;
   display: grid;
   place-items: center;
-  width: 22px;
-  height: 22px;
+  width: 21px;
+  height: 21px;
   color: #fff;
   background: rgba(0, 0, 0, 0.72);
   border: 0;
@@ -783,8 +805,7 @@ button {
 .preview-add {
   display: grid;
   place-items: center;
-  font-size: 32px;
-  font-weight: 900;
+  color: #fff;
 }
 
 .preview-thumb {
