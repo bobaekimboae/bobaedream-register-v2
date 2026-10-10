@@ -239,9 +239,35 @@ function playBeep({ frequency = 880, duration = 0.08, gain = 0.12, type = "squar
   oscillator.stop(start + duration + 0.02);
 }
 
+function playClickNoise({ delay = 0, duration = 0.024, gain = 0.24, highpass = 1200 }) {
+  const context = audioContext();
+  if (!context) return;
+  const start = context.currentTime + delay;
+  const buffer = context.createBuffer(1, Math.max(1, Math.floor(context.sampleRate * duration)), context.sampleRate);
+  const samples = buffer.getChannelData(0);
+  for (let index = 0; index < samples.length; index += 1) {
+    const decay = 1 - index / samples.length;
+    samples[index] = (Math.random() * 2 - 1) * decay * decay;
+  }
+
+  const source = context.createBufferSource();
+  const filter = context.createBiquadFilter();
+  const volume = context.createGain();
+  source.buffer = buffer;
+  filter.type = "highpass";
+  filter.frequency.setValueAtTime(highpass, start);
+  volume.gain.setValueAtTime(gain, start);
+  volume.gain.exponentialRampToValueAtTime(0.0001, start + duration);
+  source.connect(filter);
+  filter.connect(volume);
+  volume.connect(context.destination);
+  source.start(start);
+  source.stop(start + duration + 0.01);
+}
+
 function playShutterSound() {
-  playBeep({ frequency: 1250, duration: 0.035, gain: 0.18, type: "square" });
-  playBeep({ frequency: 720, duration: 0.055, gain: 0.14, type: "triangle", delay: 0.045 });
+  playClickNoise({ gain: 0.32, duration: 0.018, highpass: 1800 });
+  playClickNoise({ delay: 0.055, gain: 0.22, duration: 0.026, highpass: 950 });
 }
 
 function playRecordStartSound() {
