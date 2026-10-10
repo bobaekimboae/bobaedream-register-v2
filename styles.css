@@ -1653,6 +1653,7 @@ button {
   border-radius: 999px;
   font-size: 13px;
   font-weight: 700;
+  pointer-events: none;
   transform: translateX(-50%);
 }
 
