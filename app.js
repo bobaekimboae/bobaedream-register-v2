@@ -59,6 +59,7 @@ const state = {
   modal: null,
   toast: "",
   dragIndex: null,
+  suppressPreviewUntil: 0,
 };
 
 const screen = document.querySelector("#screenRoot");
@@ -104,6 +105,16 @@ if (demoParams.get("shot") === "1") {
     },
   ];
   state.activeSlot = 1;
+}
+if (demoParams.has("photos")) {
+  const count = Math.max(0, Math.min(30, Number(demoParams.get("photos")) || 0));
+  state.photos = Array.from({ length: count }, (_, index) => ({
+    id: `demo-photo-${index}`,
+    slot: index,
+    label: slots[index] || `기타 ${index + 1}`,
+    src: samplePhotos[index % samplePhotos.length],
+  }));
+  state.activeSlot = firstMissingSlot();
 }
 
 const iconPaths = {
@@ -853,7 +864,10 @@ function bindEvents() {
         render();
       }
       if (action === "doc-upload") showToast("인증 이미지는 실시간 촬영만 지원합니다");
-      if (action === "preview") openPreview(Number(target.dataset.index));
+      if (action === "preview") {
+        if (Date.now() < state.suppressPreviewUntil) return;
+        openPreview(Number(target.dataset.index));
+      }
       if (action === "main-delete") deletePhoto(target.dataset.id, true);
       if (action === "delete-confirm") confirmDelete();
       if (action === "close-camera") setView("main");
@@ -938,13 +952,15 @@ function bindEvents() {
     let startX = 0;
     let startY = 0;
     let pointerDragging = false;
+    let dragStarted = false;
+    let targetIndex = null;
+    let cardRects = [];
 
     card.addEventListener("dragstart", (event) => {
-      state.dragIndex = Number(card.dataset.dragIndex);
-      card.classList.add("dragging");
-      event.dataTransfer.effectAllowed = "move";
+      event.preventDefault();
     });
     card.addEventListener("dragend", () => {
+      state.dragIndex = Number(card.dataset.dragIndex);
       state.dragIndex = null;
       card.classList.remove("dragging");
     });
@@ -954,31 +970,48 @@ function bindEvents() {
       movePhoto(state.dragIndex, Number(card.dataset.dragIndex));
     });
     card.addEventListener("pointerdown", (event) => {
-      if (event.target.closest(".delete-chip") || event.target.closest(".thumb")) return;
+      if (event.target.closest(".delete-chip")) return;
       startX = event.clientX;
       startY = event.clientY;
       pointerDragging = true;
+      dragStarted = false;
+      targetIndex = Number(card.dataset.dragIndex);
       state.dragIndex = Number(card.dataset.dragIndex);
+      cardRects = Array.from(screen.querySelectorAll("#mainMediaGrid .media-card")).map((item) => ({
+        index: Number(item.dataset.dragIndex),
+        rect: item.getBoundingClientRect(),
+      }));
       card.setPointerCapture?.(event.pointerId);
     });
     card.addEventListener("pointermove", (event) => {
       if (!pointerDragging) return;
-      const dx = Math.abs(event.clientX - startX);
-      const dy = Math.abs(event.clientY - startY);
-      if (dx > 16 && dx > dy) {
+      const dx = event.clientX - startX;
+      const dy = event.clientY - startY;
+      if (!dragStarted && Math.hypot(dx, dy) > 10) {
+        dragStarted = true;
         card.classList.add("touch-dragging");
+        state.suppressPreviewUntil = Date.now() + 500;
+      }
+      if (!dragStarted) return;
+
+      card.style.transform = `translate(${dx}px, ${dy}px) scale(1.04)`;
+      const hover = cardRects.find(({ rect }) => event.clientX >= rect.left && event.clientX <= rect.right && event.clientY >= rect.top && event.clientY <= rect.bottom);
+      if (hover && hover.index !== targetIndex) {
+        targetIndex = hover.index;
+        screen.querySelectorAll("#mainMediaGrid .media-card").forEach((item) => item.classList.toggle("is-drop-target", Number(item.dataset.dragIndex) === targetIndex));
       }
     });
     card.addEventListener("pointerup", (event) => {
       if (!pointerDragging) return;
       pointerDragging = false;
+      card.style.transform = "";
       card.classList.remove("touch-dragging");
-      const dx = event.clientX - startX;
-      if (Math.abs(dx) < 42) return;
-      const direction = dx > 0 ? 1 : -1;
+      screen.querySelectorAll("#mainMediaGrid .media-card").forEach((item) => item.classList.remove("is-drop-target"));
+      if (!dragStarted) return;
+      state.suppressPreviewUntil = Date.now() + 500;
       const from = Number(card.dataset.dragIndex);
-      const to = Math.max(0, Math.min(state.photos.length - 1, from + direction));
-      movePhoto(from, to);
+      const to = targetIndex ?? from;
+      if (from !== to) movePhoto(from, to);
     });
   });
 

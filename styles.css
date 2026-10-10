@@ -524,6 +524,31 @@ button {
   max-width: 100%;
 }
 
+.media-card {
+  touch-action: none;
+  transition: transform 120ms ease, opacity 120ms ease, box-shadow 120ms ease;
+}
+
+.media-card.touch-dragging {
+  z-index: 30;
+  opacity: 0.96;
+  filter: saturate(1.04);
+}
+
+.media-card.touch-dragging .thumb {
+  box-shadow: 0 13px 26px rgba(0, 0, 0, 0.22);
+}
+
+.media-card.is-drop-target::before {
+  content: "";
+  position: absolute;
+  inset: -5px -4px 20px;
+  z-index: 6;
+  border: 2px solid var(--orange);
+  border-radius: 6px;
+  pointer-events: none;
+}
+
 .thumb,
 .add-card {
   display: grid;
