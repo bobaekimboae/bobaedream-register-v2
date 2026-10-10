@@ -20,6 +20,9 @@
 
 ## Current Fixes
 
+- Photo shutter now opens a real mobile camera input (`accept=image/*`, `capture=environment`) and stores the captured file as the slot thumbnail.
+- Album mode now opens a real image picker and adds selected images to the next empty slots.
+- Video record now opens a real mobile video capture input (`accept=video/*`, `capture=environment`) and marks video registration complete after selection.
 - Typography has been tuned to the source: Pretendard remains the font, but title/body weights now use softer 850/820/760/620 levels instead of blanket 900 weights.
 - Capture and video screens now use smaller source-like topbar titles, guide pill labels, slot labels, and control labels.
 - Photo capture now uses the source-like black device chrome, gray camera preview, floating guide pill, horizontal angle slot rail, shutter/count/finish controls, and Android navigation bar.

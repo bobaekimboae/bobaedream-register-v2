@@ -56,6 +56,8 @@ const state = {
 
 const screen = document.querySelector("#screenRoot");
 
+const captureInputs = createCaptureInputs();
+
 const demoParams = new URLSearchParams(window.location.search);
 if (demoParams.get("empty") === "1") {
   state.photos = [];
@@ -151,6 +153,53 @@ function photoForSlot(slot) {
   return state.photos.find((photo) => photo.slot === slot);
 }
 
+function createCaptureInputs() {
+  const makeInput = ({ accept, capture, multiple = false }) => {
+    const input = document.createElement("input");
+    input.type = "file";
+    input.accept = accept;
+    if (capture) input.setAttribute("capture", capture);
+    if (multiple) input.multiple = true;
+    input.hidden = true;
+    input.tabIndex = -1;
+    document.body.appendChild(input);
+    return input;
+  };
+
+  const inputs = {
+    photoCamera: makeInput({ accept: "image/*", capture: "environment" }),
+    photoAlbum: makeInput({ accept: "image/*", multiple: true }),
+    videoCamera: makeInput({ accept: "video/*", capture: "environment" }),
+  };
+
+  inputs.photoCamera.addEventListener("change", () => {
+    const file = inputs.photoCamera.files?.[0];
+    if (file) addPhotoFromFile(state.activeSlot, file);
+    inputs.photoCamera.value = "";
+  });
+
+  inputs.photoAlbum.addEventListener("change", () => {
+    Array.from(inputs.photoAlbum.files || []).forEach((file) => addPhotoFromFile(firstMissingSlot(), file, false));
+    inputs.photoAlbum.value = "";
+    if (state.photos.length) {
+      state.cameraMode = "camera";
+      showToast("앨범 사진이 추가되었습니다");
+    }
+  });
+
+  inputs.videoCamera.addEventListener("change", () => {
+    const file = inputs.videoCamera.files?.[0];
+    if (!file) return;
+    state.videoRecording = false;
+    state.videoDone = true;
+    state.progress = Math.max(state.progress, 42);
+    showToast("영상이 등록되었습니다");
+    inputs.videoCamera.value = "";
+  });
+
+  return inputs;
+}
+
 function addPhoto(slot = state.activeSlot) {
   if (state.photos.length >= 30) {
     showToast("사진은 최대 30장까지 등록할 수 있습니다");
@@ -170,6 +219,39 @@ function addPhoto(slot = state.activeSlot) {
   state.activeSlot = firstMissingSlot();
   state.progress = Math.max(state.progress, 38);
   render();
+}
+
+function addPhotoFromFile(slot = state.activeSlot, file, shouldRender = true) {
+  if (state.photos.length >= 30) {
+    showToast("사진은 최대 30장까지 등록할 수 있습니다");
+    return;
+  }
+  if (photoForSlot(slot)) {
+    slot = firstMissingSlot();
+  }
+  const photo = {
+    id: `file-${Date.now()}-${slot}-${Math.random().toString(16).slice(2)}`,
+    slot,
+    label: slots[slot] || `기타 ${state.photos.length + 1}`,
+    src: URL.createObjectURL(file),
+    fileName: file.name,
+  };
+  state.photos.push(photo);
+  state.activeSlot = firstMissingSlot();
+  state.progress = Math.max(state.progress, 38);
+  if (shouldRender) render();
+}
+
+function openPhotoCapture() {
+  captureInputs.photoCamera.click();
+}
+
+function openAlbumPicker() {
+  captureInputs.photoAlbum.click();
+}
+
+function openVideoCapture() {
+  captureInputs.videoCamera.click();
 }
 
 function deletePhoto(id, withConfirm) {
@@ -545,7 +627,7 @@ function bindEvents() {
         state.maskPlate = !state.maskPlate;
         render();
       }
-      if (action === "shutter") addPhoto(state.activeSlot);
+      if (action === "shutter") openPhotoCapture();
       if (action === "finish-camera") {
         if (!state.photos.length) {
           showToast("사진을 최소 1장 등록해 주세요");
@@ -560,6 +642,7 @@ function bindEvents() {
       if (action === "mode-album") {
         state.cameraMode = "album";
         render();
+        openAlbumPicker();
       }
       if (action === "album-photo") {
         addPhoto(firstMissingSlot());
@@ -601,8 +684,7 @@ function bindEvents() {
         render();
       }
       if (action === "record") {
-        state.videoRecording = !state.videoRecording;
-        render();
+        openVideoCapture();
       }
       if (action === "video-next") {
         state.videoRecording = false;
