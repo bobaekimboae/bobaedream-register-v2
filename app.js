@@ -53,7 +53,7 @@ const state = {
   cameraMode: "camera",
   maskPlate: false,
   previewIndex: 0,
-  previewTool: "plate",
+  previewTool: null,
   pendingDelete: null,
   videoSegment: 0,
   videoRecording: false,
@@ -176,11 +176,12 @@ function photoLayerStyle(photo) {
   return `background-image:url('${photo.src}');transform:rotate(${edits.rotate}deg) scale(${scale})`;
 }
 
-function photoEditBadges(photo) {
+function photoEditBadges(photo, variant = "") {
   const edits = photoEdits(photo);
+  const variantClass = variant ? ` ${variant}` : "";
   return `
-    ${edits.plate ? '<span class="plate-mask" aria-hidden="true"></span>' : ""}
-    ${edits.mosaic ? '<span class="mosaic-mask" aria-hidden="true"></span>' : ""}
+    ${edits.plate ? `<span class="plate-mask${variantClass}" aria-hidden="true"></span>` : ""}
+    ${edits.mosaic ? `<span class="mosaic-mask${variantClass}" aria-hidden="true"></span>` : ""}
   `;
 }
 
@@ -590,12 +591,18 @@ function mainView() {
           <div class="media-grid ${completed ? "is-completed" : "is-empty"}" id="mainMediaGrid">
             ${state.photos
               .map(
-                (photo, index) => `
+                (photo, index) => {
+                  const edits = photoEdits(photo);
+                  return `
                   <div class="media-card" draggable="true" data-drag-index="${index}">
-                    <button class="thumb" data-action="preview" data-index="${index}" style="background-image:url('${photo.src}')" aria-label="${photo.label} 미리보기"></button>
+                    <button class="thumb" data-action="preview" data-index="${index}" aria-label="${photo.label} 미리보기">
+                      <span class="thumb-layer ${edits.mosaic ? "is-mosaic" : ""}" style="${photoLayerStyle(photo)}"></span>
+                      ${photoEditBadges(photo, "is-thumb")}
+                    </button>
                     <button class="delete-chip" data-action="main-delete" data-id="${photo.id}" aria-label="사진 삭제">${icon("trash-2", 16)}</button>
                     <label>${photo.label}</label>
-                  </div>`,
+                  </div>`;
+                },
               )
               .join("")}
             <button class="add-card count-card" type="button" data-action="photo-camera">
@@ -725,12 +732,18 @@ function previewView() {
         <button class="preview-add" data-action="preview-add" type="button" aria-label="사진 추가">${icon("plus", 30)}</button>
         ${state.photos
           .map(
-            (item, index) => `
+            (item, index) => {
+              const itemEdits = photoEdits(item);
+              return `
               <div class="preview-item ${index === state.previewIndex ? "is-active" : ""}">
-              <button class="preview-thumb" data-action="preview-pick" data-index="${index}" style="background-image:url('${item.src}')" aria-label="${item.label} 선택"></button>
+                <button class="preview-thumb" data-action="preview-pick" data-index="${index}" aria-label="${item.label} 선택">
+                  <span class="thumb-layer ${itemEdits.mosaic ? "is-mosaic" : ""}" style="${photoLayerStyle(item)}"></span>
+                  ${photoEditBadges(item, "is-thumb")}
+                </button>
                 <button class="preview-delete" data-action="preview-delete" data-id="${item.id}" aria-label="사진 삭제">×</button>
                 <span class="preview-label">${item.label}</span>
-              </div>`,
+              </div>`;
+            },
           )
           .join("")}
       </div>
