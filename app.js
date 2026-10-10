@@ -1,16 +1,30 @@
-const slots = [
-  "좌전 45°",
-  "정면",
-  "우전 45°",
-  "우측면",
-  "후면",
-  "좌측면",
-  "계기판",
-  "실내",
-  "엔진룸",
-  "트렁크",
-  ...Array.from({ length: 20 }, (_, index) => `기타 ${index + 1}`),
+const slotCopy = [
+  { thumb: "좌전면45°", guide: "좌전면 45°" },
+  { thumb: "정면", guide: "정면" },
+  { thumb: "우전면45°", guide: "우전면 45°" },
+  { thumb: "우측면", guide: "우측면" },
+  { thumb: "후면", guide: "후면" },
+  { thumb: "좌측면", guide: "좌측면" },
+  { thumb: "계기판", guide: "계기판" },
+  { thumb: "실내", guide: "실내" },
+  { thumb: "엔진룸", guide: "엔진룸" },
+  { thumb: "트렁크", guide: "트렁크" },
+  { thumb: "차대번호", guide: "차대번호" },
+  { thumb: "타이어", guide: "타이어" },
 ];
+
+const slots = [
+  ...slotCopy.map((slot) => slot.thumb),
+  ...Array.from({ length: 18 }, (_, index) => `추가${index + 1}`),
+];
+
+function slotGuideLabel(index) {
+  return slotCopy[index]?.guide || slots[index] || `추가 ${index + 1}`;
+}
+
+function slotThumbLabel(index) {
+  return slots[index] || `추가${index + 1}`;
+}
 
 const samplePhotos = [
   "https://images.unsplash.com/photo-1493238792000-8113da705763?auto=format&fit=crop&w=420&q=80",
@@ -93,7 +107,7 @@ if (demoParams.get("shot") === "1") {
     {
       id: "shot-left-front",
       slot: 0,
-      label: "좌전 45°",
+      label: slots[0],
       src: samplePhotos[0],
       edits: defaultPhotoEdits(),
     },
@@ -105,7 +119,7 @@ if (demoParams.has("photos")) {
   state.photos = Array.from({ length: count }, (_, index) => ({
     id: `demo-photo-${index}`,
     slot: index,
-    label: slots[index] || `기타 ${index + 1}`,
+    label: slotThumbLabel(index),
     src: samplePhotos[index % samplePhotos.length],
     edits: defaultPhotoEdits(),
   }));
@@ -446,7 +460,7 @@ function addPhotoFromDataUrl(slot = state.activeSlot, src) {
   state.photos.push({
     id: `camera-${Date.now()}-${slot}`,
     slot,
-    label: slots[slot] || `기타 ${state.photos.length + 1}`,
+    label: slotThumbLabel(slot),
     src,
     edits: defaultPhotoEdits(),
   });
@@ -508,7 +522,7 @@ function toggleVideoRecording() {
 
 function firstMissingSlot() {
   const taken = new Set(state.photos.map((photo) => photo.slot));
-  const priority = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9];
+  const priority = Array.from({ length: slotCopy.length }, (_, index) => index);
   return priority.find((slot) => !taken.has(slot)) ?? state.photos.length;
 }
 
@@ -575,7 +589,7 @@ function addPhoto(slot = state.activeSlot) {
   const photo = {
     id: `p-${Date.now()}-${slot}`,
     slot,
-    label: slots[slot],
+    label: slotThumbLabel(slot),
     src: samplePhotos[state.photos.length % samplePhotos.length],
     edits: defaultPhotoEdits(),
   };
@@ -596,7 +610,7 @@ function addPhotoFromFile(slot = state.activeSlot, file, shouldRender = true) {
   const photo = {
     id: `file-${Date.now()}-${slot}-${Math.random().toString(16).slice(2)}`,
     slot,
-    label: slots[slot] || `기타 ${state.photos.length + 1}`,
+    label: slotThumbLabel(slot),
     src: URL.createObjectURL(file),
     fileName: file.name,
     edits: defaultPhotoEdits(),
@@ -706,7 +720,7 @@ function mainView() {
             <div class="title-with-required"><h3>${completed ? "차량 사진 인식 완료" : "사진/영상 등록"}</h3><span class="required">(필수)</span></div>
             <button class="help-link" type="button" data-action="rules">${icon("circle-help", 16)} 촬영규칙</button>
           </div>
-          <p class="alert-copy">첫 사진은 좌전 45° 차량 사진을 사용하면 <span>목록 노출 효과가 좋습니다.</span></p>
+          <p class="alert-copy">첫 사진은 좌전면 45° 차량 사진을 사용하면 <span>목록 노출 효과가 좋습니다.</span></p>
           ${
             completed
               ? `<div class="tip-card source-tip">
@@ -794,7 +808,7 @@ function mainView() {
 function cameraView() {
   const albumMode = state.cameraMode === "album";
   return `
-    <div class="camera-view">
+    <div class="camera-view ${albumMode ? "is-album" : ""}">
       <header class="dark-topbar">
         <button class="icon-button dark-button" data-action="close-camera" aria-label="닫기">${icon("x", 30)}</button>
         <h2>${albumMode ? "내 사진첩" : "사진 촬영"}</h2>
@@ -803,17 +817,19 @@ function cameraView() {
 
       ${
         albumMode
-          ? `<div class="album-guide-pill">우선 등록 각도: 좌전45° · 정면 · 우전45° · 측면</div>
-             <div class="album-grid">
-              ${samplePhotos
-                .map(
-                  (src, index) => `<button class="album-item" data-action="album-photo" data-index="${index}" style="background-image:url('${src}')" aria-label="앨범 사진 ${index + 1}"></button>`,
-                )
-                .join("")}
-             </div>`
+          ? `<div class="album-panel">
+              <div class="album-guide-pill">우선 등록 각도: 좌전면45° · 정면 · 우전면45° · 측면</div>
+              <div class="album-grid">
+                ${samplePhotos
+                  .map(
+                    (src, index) => `<button class="album-item" data-action="album-photo" data-index="${index}" style="background-image:url('${src}')" aria-label="앨범 사진 ${index + 1}"></button>`,
+                  )
+                  .join("")}
+              </div>
+            </div>`
           : `<div class="camera-stage" data-camera-stage>
               <video class="live-camera-feed" data-camera-preview playsinline autoplay muted></video>
-              <div class="guide-pill">촬영 ${slots[state.activeSlot]}</div>
+              <div class="guide-pill">촬영 ${slotGuideLabel(state.activeSlot)}</div>
               <p class="camera-permission-copy" data-camera-error>카메라 권한을 허용하면 실제 화면이 표시됩니다.</p>
             </div>
             <div class="slot-rail">
@@ -964,7 +980,7 @@ function modalLayer() {
           <h3>차량 사진 촬영 규칙</h3>
           <p>최소 1장 이상 등록해야 하며, 추천 각도를 채우면 매물 신뢰도가 높아집니다.</p>
           <div class="rules-grid">
-            <div class="rules-group"><h4>외관 6장</h4><div class="rules-chips"><span>좌전 45°</span><span>정면</span><span>우전 45°</span><span>우측면</span><span>후면</span><span>좌측면</span></div></div>
+            <div class="rules-group"><h4>외관 6장</h4><div class="rules-chips"><span>좌전면 45°</span><span>정면</span><span>우전면 45°</span><span>우측면</span><span>후면</span><span>좌측면</span></div></div>
             <div class="rules-group"><h4>실내 2장</h4><div class="rules-chips"><span>계기판</span><span>실내</span></div></div>
             <div class="rules-group"><h4>기타 2장</h4><div class="rules-chips"><span>엔진룸</span><span>트렁크</span></div></div>
           </div>

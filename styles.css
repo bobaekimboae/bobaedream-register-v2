@@ -899,6 +899,10 @@ button {
   grid-template-rows: 58px minmax(0, 1fr) 104px 50px;
 }
 
+.camera-view.is-album {
+  grid-template-rows: 58px minmax(0, 1fr) 50px;
+}
+
 .video-view {
   display: grid;
   grid-template-rows: 58px minmax(0, 1fr) 104px 50px;
@@ -1213,30 +1217,44 @@ button {
   border-right: 19px solid #858585;
 }
 
+.album-panel {
+  min-height: 0;
+  overflow-y: auto;
+  padding: 0 14px 14px;
+  background: #050607;
+  scrollbar-width: none;
+}
+
+.album-panel::-webkit-scrollbar {
+  display: none;
+}
+
 .album-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 8px;
-  padding: 10px 14px 14px;
+  padding: 8px 0 14px;
 }
 
 .album-guide-pill {
-  width: max-content;
-  max-width: calc(100% - 36px);
+  width: 100%;
+  max-width: 100%;
   margin: 14px auto 8px;
   padding: 8px 16px;
   color: #fff;
-  background: rgba(180, 180, 180, 0.58);
-  border-radius: 999px;
+  background: transparent;
+  border-radius: 0;
   font-size: 14px;
   font-weight: var(--fw-strong);
   line-height: 1.25;
   text-align: center;
+  white-space: nowrap;
 }
 
 .album-item {
   position: relative;
   aspect-ratio: 1;
+  min-width: 0;
   background-size: cover;
   background-position: center;
   border: 2px solid transparent;
