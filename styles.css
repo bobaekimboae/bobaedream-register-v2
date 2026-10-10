@@ -685,6 +685,16 @@ button {
   color: #30343a;
 }
 
+.upload-asset-icon {
+  display: block;
+  object-fit: contain;
+}
+
+.add-card .upload-asset-icon {
+  align-self: end;
+  justify-self: center;
+}
+
 .add-card span {
   font-size: 17px;
   font-weight: var(--fw-section);

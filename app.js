@@ -155,6 +155,10 @@ function icon(name, size = 21) {
   return `<svg class="ui-icon ui-icon-${name}" viewBox="0 0 24 24" aria-hidden="true" style="width:${size}px;height:${size}px">${path}</svg>`;
 }
 
+function uploadAssetIcon(type, size = 42) {
+  return `<img class="upload-asset-icon upload-asset-icon-${type}" src="./assets/${type}-upload-chotot.png" alt="" aria-hidden="true" style="width:${size}px;height:${size}px" />`;
+}
+
 function defaultPhotoEdits() {
   return {
     plate: false,
@@ -606,11 +610,11 @@ function mainView() {
               )
               .join("")}
             <button class="add-card count-card" type="button" data-action="photo-camera">
-              ${icon("image-upload", 38)}
+              ${uploadAssetIcon("photo", 42)}
               <span>${completed ? `${state.photos.length}/30` : "사진 추가"}</span>
             </button>
             <button class="add-card" type="button" data-action="video">
-              ${icon(state.videoDone ? "badge-check" : "video", 34)}
+              ${uploadAssetIcon("video", 42)}
               <span>${state.videoDone ? "영상 완료" : "영상 추가"}</span>
             </button>
           </div>
