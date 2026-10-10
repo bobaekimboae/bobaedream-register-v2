@@ -157,6 +157,45 @@ function showToast(message) {
   }, 1600);
 }
 
+function audioContext() {
+  const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+  if (!AudioContextClass) return null;
+  if (!audioContext.instance) audioContext.instance = new AudioContextClass();
+  if (audioContext.instance.state === "suspended") audioContext.instance.resume().catch(() => {});
+  return audioContext.instance;
+}
+
+function playBeep({ frequency = 880, duration = 0.08, gain = 0.12, type = "square", delay = 0 }) {
+  const context = audioContext();
+  if (!context) return;
+  const start = context.currentTime + delay;
+  const oscillator = context.createOscillator();
+  const volume = context.createGain();
+  oscillator.type = type;
+  oscillator.frequency.setValueAtTime(frequency, start);
+  volume.gain.setValueAtTime(0.0001, start);
+  volume.gain.exponentialRampToValueAtTime(gain, start + 0.006);
+  volume.gain.exponentialRampToValueAtTime(0.0001, start + duration);
+  oscillator.connect(volume);
+  volume.connect(context.destination);
+  oscillator.start(start);
+  oscillator.stop(start + duration + 0.02);
+}
+
+function playShutterSound() {
+  playBeep({ frequency: 1250, duration: 0.035, gain: 0.18, type: "square" });
+  playBeep({ frequency: 720, duration: 0.055, gain: 0.14, type: "triangle", delay: 0.045 });
+}
+
+function playRecordStartSound() {
+  playBeep({ frequency: 880, duration: 0.07, gain: 0.13, type: "sine" });
+}
+
+function playRecordStopSound() {
+  playBeep({ frequency: 660, duration: 0.06, gain: 0.12, type: "sine" });
+  playBeep({ frequency: 440, duration: 0.07, gain: 0.1, type: "sine", delay: 0.075 });
+}
+
 function stopLiveCamera() {
   liveCamera.renderId += 1;
   if (liveCamera.recorder && liveCamera.recorder.state !== "inactive") {
@@ -261,6 +300,7 @@ function capturePhotoFromLiveCamera() {
     openPhotoCapture();
     return;
   }
+  playShutterSound();
   addPhotoFromDataUrl(state.activeSlot, photoDataUrlFromPreview());
 }
 
@@ -270,10 +310,12 @@ function toggleVideoRecording() {
     return;
   }
   if (liveCamera.recorder && liveCamera.recorder.state === "recording") {
+    playRecordStopSound();
     liveCamera.recorder.stop();
     return;
   }
 
+  playRecordStartSound();
   liveCamera.chunks = [];
   const recorderOptions = MediaRecorder.isTypeSupported("video/webm") ? { mimeType: "video/webm" } : undefined;
   const recorder = new MediaRecorder(liveCamera.stream, recorderOptions);
