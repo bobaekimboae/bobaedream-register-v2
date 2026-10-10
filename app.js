@@ -21,6 +21,13 @@ const samplePhotos = [
   "https://images.unsplash.com/photo-1517524008697-84bbe3c3fd98?auto=format&fit=crop&w=420&q=80",
 ];
 
+const videoTemplateImages = [
+  "assets/video-template-exterior.png",
+  "assets/video-template-interior.png",
+  "assets/video-template-engine.png",
+  "assets/video-template-trunk.png",
+];
+
 const state = {
   view: "main",
   progress: 32,
@@ -57,6 +64,13 @@ const state = {
 const screen = document.querySelector("#screenRoot");
 
 const captureInputs = createCaptureInputs();
+const liveCamera = {
+  stream: null,
+  mode: null,
+  renderId: 0,
+  recorder: null,
+  chunks: [],
+};
 
 const demoParams = new URLSearchParams(window.location.search);
 if (demoParams.get("empty") === "1") {
@@ -141,6 +155,142 @@ function showToast(message) {
     state.toast = "";
     render();
   }, 1600);
+}
+
+function stopLiveCamera() {
+  liveCamera.renderId += 1;
+  if (liveCamera.recorder && liveCamera.recorder.state !== "inactive") {
+    liveCamera.recorder.stop();
+  }
+  if (liveCamera.stream) {
+    liveCamera.stream.getTracks().forEach((track) => track.stop());
+  }
+  liveCamera.stream = null;
+  liveCamera.mode = null;
+  liveCamera.recorder = null;
+  liveCamera.chunks = [];
+}
+
+function attachLiveStream(video) {
+  if (!video || !liveCamera.stream) return;
+  if (video.srcObject !== liveCamera.stream) video.srcObject = liveCamera.stream;
+  video.play().catch(() => {});
+}
+
+async function startLiveCamera(mode) {
+  const video = screen.querySelector("[data-camera-preview]");
+  const stage = screen.querySelector("[data-camera-stage]");
+  const error = screen.querySelector("[data-camera-error]");
+  if (!video) return;
+
+  if (liveCamera.stream && liveCamera.mode === mode) {
+    attachLiveStream(video);
+    stage?.classList.add("is-live");
+    return;
+  }
+
+  stopLiveCamera();
+  const renderId = ++liveCamera.renderId;
+
+  if (!navigator.mediaDevices?.getUserMedia) {
+    if (error) error.textContent = "이 브라우저는 실시간 카메라를 지원하지 않습니다. 셔터를 누르면 기본 카메라를 엽니다.";
+    return;
+  }
+
+  try {
+    const stream = await navigator.mediaDevices.getUserMedia({
+      video: {
+        facingMode: { ideal: "environment" },
+        width: { ideal: 1280 },
+        height: { ideal: 720 },
+      },
+      audio: false,
+    });
+    if (renderId !== liveCamera.renderId) {
+      stream.getTracks().forEach((track) => track.stop());
+      return;
+    }
+    liveCamera.stream = stream;
+    liveCamera.mode = mode;
+    attachLiveStream(video);
+    stage?.classList.add("is-live");
+    if (error) error.textContent = "";
+  } catch (errorObject) {
+    if (error) error.textContent = "카메라 권한이 필요합니다. 권한 허용 후 다시 누르세요.";
+    showToast("카메라 권한을 허용해 주세요");
+  }
+}
+
+function photoDataUrlFromPreview() {
+  const video = screen.querySelector("[data-camera-preview]");
+  if (!video || !video.videoWidth || !video.videoHeight) return "";
+  const canvas = document.createElement("canvas");
+  canvas.width = video.videoWidth;
+  canvas.height = video.videoHeight;
+  const context = canvas.getContext("2d");
+  context.drawImage(video, 0, 0, canvas.width, canvas.height);
+  return canvas.toDataURL("image/jpeg", 0.9);
+}
+
+function addPhotoFromDataUrl(slot = state.activeSlot, src) {
+  if (!src) {
+    openPhotoCapture();
+    return;
+  }
+  if (state.photos.length >= 30) {
+    showToast("사진은 최대 30장까지 등록할 수 있습니다");
+    return;
+  }
+  if (photoForSlot(slot)) {
+    slot = firstMissingSlot();
+  }
+  state.photos.push({
+    id: `camera-${Date.now()}-${slot}`,
+    slot,
+    label: slots[slot] || `기타 ${state.photos.length + 1}`,
+    src,
+  });
+  state.activeSlot = firstMissingSlot();
+  state.progress = Math.max(state.progress, 38);
+  showToast("사진이 등록되었습니다");
+  render();
+}
+
+function capturePhotoFromLiveCamera() {
+  if (!liveCamera.stream) {
+    openPhotoCapture();
+    return;
+  }
+  addPhotoFromDataUrl(state.activeSlot, photoDataUrlFromPreview());
+}
+
+function toggleVideoRecording() {
+  if (!liveCamera.stream || typeof MediaRecorder === "undefined") {
+    openVideoCapture();
+    return;
+  }
+  if (liveCamera.recorder && liveCamera.recorder.state === "recording") {
+    liveCamera.recorder.stop();
+    return;
+  }
+
+  liveCamera.chunks = [];
+  const recorderOptions = MediaRecorder.isTypeSupported("video/webm") ? { mimeType: "video/webm" } : undefined;
+  const recorder = new MediaRecorder(liveCamera.stream, recorderOptions);
+  liveCamera.recorder = recorder;
+  recorder.addEventListener("dataavailable", (event) => {
+    if (event.data?.size) liveCamera.chunks.push(event.data);
+  });
+  recorder.addEventListener("stop", () => {
+    const blob = new Blob(liveCamera.chunks, { type: "video/webm" });
+    state.videoDone = blob.size > 0;
+    state.videoRecording = false;
+    state.progress = Math.max(state.progress, 42);
+    showToast("영상이 등록되었습니다");
+  });
+  recorder.start();
+  state.videoRecording = true;
+  render();
 }
 
 function firstMissingSlot() {
@@ -422,8 +572,10 @@ function cameraView() {
                 )
                 .join("")}
              </div>`
-          : `<div class="camera-stage">
+          : `<div class="camera-stage" data-camera-stage>
+              <video class="live-camera-feed" data-camera-preview playsinline autoplay muted></video>
               <div class="guide-pill">촬영 ${slots[state.activeSlot]}</div>
+              <p class="camera-permission-copy" data-camera-error>카메라 권한을 허용하면 실제 화면이 표시됩니다.</p>
             </div>
             <div class="slot-rail">
               ${slots
@@ -438,9 +590,7 @@ function cameraView() {
             </div>
             <div class="camera-controls">
         <button class="mask-toggle ${state.maskPlate ? "is-active" : ""}" data-action="mask" type="button">${icon("scan-face", 22)}번호판가림</button>
-              <label class="shutter" aria-label="촬영">
-                <input class="native-file-input" type="file" accept="image/*" capture="environment" data-file-action="photo-camera" />
-              </label>
+              <button class="shutter" data-action="capture-photo" type="button" aria-label="촬영"></button>
               <div class="counter-finish">
                 <strong>${state.photos.length}/30</strong>
                 <button class="finish-small" data-action="finish-camera" type="button">완료</button>
@@ -510,23 +660,23 @@ function videoView() {
         <h2>차량 영상</h2>
         <button class="icon-button dark-button flash-button" type="button" aria-label="플래시">${icon("zap", 31)}</button>
       </header>
-      <div class="video-stage">
+      <div class="video-stage" data-camera-stage>
+        <video class="live-camera-feed" data-camera-preview playsinline autoplay muted></video>
         <div class="guide-pill">촬영 ${segmentNames[state.videoSegment]}</div>
         <div class="video-frame-line"></div>
         <p class="video-guide-copy">촬영 항목이 맞는지 확인해 주세요</p>
+        <p class="camera-permission-copy video-permission-copy" data-camera-error>카메라 권한을 허용하면 실제 화면이 표시됩니다.</p>
       </div>
       <div class="video-segments">
         ${segmentNames
           .map(
-            (name, index) => `<button class="segment-step ${state.videoSegment === index ? "is-active" : ""}" data-action="video-segment" data-index="${index}" type="button" style="--segment-image:url('${samplePhotos[index % samplePhotos.length]}')"><span>${index === state.videoSegment ? "예시" : ""}</span><b>${name}</b></button>`,
+            (name, index) => `<button class="segment-step ${state.videoSegment === index ? "is-active" : ""}" data-action="video-segment" data-index="${index}" type="button" style="--segment-image:url('${videoTemplateImages[index]}')"><span>${index === state.videoSegment ? "예시" : ""}</span><b>${name}</b></button>`,
           )
           .join("")}
       </div>
       <div class="video-controls">
         <span class="record-timer">${state.videoRecording ? "00:08" : ""}</span>
-        <label class="record-button ${state.videoRecording ? "is-recording" : ""}" aria-label="녹화">
-          <input class="native-file-input" type="file" accept="video/*" capture="environment" data-file-action="video-camera" />
-        </label>
+        <button class="record-button ${state.videoRecording ? "is-recording" : ""}" data-action="record" type="button" aria-label="녹화"></button>
         <button class="next-video" data-action="video-next" type="button">${state.videoSegment === 3 ? "완료" : "다음"}</button>
       </div>
       <div class="mode-tabs video-mode-tabs">
@@ -591,6 +741,13 @@ function render() {
   if (state.view === "main") screen.innerHTML = mainView();
   bindEvents();
   updateIcons();
+  if (state.view === "camera" && state.cameraMode === "camera") {
+    startLiveCamera("photo");
+  } else if (state.view === "video") {
+    startLiveCamera("video");
+  } else {
+    stopLiveCamera();
+  }
 }
 
 function bindEvents() {
@@ -659,7 +816,7 @@ function bindEvents() {
         state.maskPlate = !state.maskPlate;
         render();
       }
-      if (action === "shutter") openPhotoCapture();
+      if (action === "capture-photo") capturePhotoFromLiveCamera();
       if (action === "finish-camera") {
         if (!state.photos.length) {
           showToast("사진을 최소 1장 등록해 주세요");
@@ -715,9 +872,7 @@ function bindEvents() {
         state.videoSegment = Number(target.dataset.index);
         render();
       }
-      if (action === "record") {
-        openVideoCapture();
-      }
+      if (action === "record") toggleVideoRecording();
       if (action === "video-next") {
         state.videoRecording = false;
         if (state.videoSegment < 3) {

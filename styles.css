@@ -87,7 +87,7 @@ button {
   display: flex;
   align-items: flex-start;
   justify-content: center;
-  width: 390px;
+  width: 100vw;
   max-width: 100vw;
   min-height: 100vh;
   padding: 0;
@@ -97,11 +97,13 @@ button {
 
 .phone-frame {
   position: relative;
-  width: 390px;
-  min-width: 390px;
-  max-width: 390px;
-  flex: 0 0 390px;
-  height: 844px;
+  width: min(100vw, 430px);
+  min-width: 0;
+  max-width: 430px;
+  flex: 0 0 min(100vw, 430px);
+  height: 100vh;
+  height: 100dvh;
+  min-height: 844px;
   overflow: hidden;
   background: var(--surface);
   border: 0;
@@ -111,23 +113,22 @@ button {
 }
 
 .status-bar {
+  display: none;
+}
+
+.status-time {
   position: absolute;
-  inset: 0 0 auto;
-  z-index: 20;
-  display: flex;
-  justify-content: space-between;
-  height: 38px;
-  padding: 13px 26px 0;
-  color: #151515;
-  background: rgba(255, 255, 255, 0.96);
-  font-size: 12px;
-  font-weight: var(--fw-strong);
+  left: 20px;
+  top: 15px;
 }
 
 .status-icons {
+  position: absolute;
+  right: 22px;
+  top: 15px;
   display: inline-flex;
   align-items: center;
-  gap: 5px;
+  gap: 4px;
   font-weight: 700;
 }
 
@@ -188,8 +189,7 @@ button {
 .phone-frame[data-view="camera"] .status-bar,
 .phone-frame[data-view="video"] .status-bar,
 .phone-frame[data-view="preview"] .status-bar {
-  color: #fff;
-  background: #000;
+  display: none;
 }
 
 .phone-frame[data-view="camera"] .screen,
@@ -200,7 +200,7 @@ button {
 
 .screen {
   height: 100%;
-  padding-top: 38px;
+  padding-top: 0;
   background: var(--surface);
 }
 
@@ -278,15 +278,15 @@ button {
 
 .topbar-row {
   display: grid;
-  grid-template-columns: 54px 1fr 72px;
+  grid-template-columns: 48px minmax(0, 1fr) 66px;
   align-items: center;
-  min-height: 66px;
+  min-height: 74px;
 }
 
 .icon-button {
   display: inline-grid;
   place-items: center;
-  width: 44px;
+  width: 42px;
   height: 44px;
   color: var(--ink);
   background: transparent;
@@ -305,24 +305,24 @@ button {
 
 .top-title h2 {
   margin: 0;
-  font-size: 21px;
+  font-size: 24px;
   font-weight: var(--fw-title);
   line-height: 1.1;
 }
 
 .top-title small {
   display: block;
-  margin-top: 4px;
+  margin-top: 5px;
   color: var(--orange);
-  font-size: 12px;
+  font-size: 14px;
   font-weight: 720;
 }
 
 .draft-link {
   position: relative;
   justify-self: end;
-  width: 60px;
-  margin-right: 6px;
+  width: 64px;
+  margin-right: 0;
   padding: 0;
   color: var(--ink);
   background: transparent;
@@ -333,20 +333,20 @@ button {
 
 .badge {
   position: absolute;
-  right: 0;
-  top: -9px;
-  min-width: 19px;
-  height: 19px;
-  padding: 0 5px;
+  right: -3px;
+  top: -12px;
+  min-width: 23px;
+  height: 23px;
+  padding: 0 7px;
   color: #fff;
   background: var(--orange);
   border-radius: 999px;
-  font-size: 11px;
-  line-height: 19px;
+  font-size: 14px;
+  line-height: 23px;
 }
 
 .progress-track {
-  height: 2px;
+  height: 3px;
   background: #edf0f4;
 }
 
@@ -357,9 +357,11 @@ button {
 }
 
 .scroll-body {
-  height: calc(100% - 68px);
-  overflow: auto;
-  padding: 24px 20px 112px;
+  height: calc(100% - 77px);
+  width: 100%;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 30px 18px 124px;
   scrollbar-width: none;
 }
 
@@ -368,15 +370,16 @@ button {
 }
 
 .section {
-  margin-bottom: 26px;
+  margin-bottom: 32px;
+  overflow: hidden;
 }
 
 .section-title {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 10px;
-  margin-bottom: 16px;
+  gap: 8px;
+  margin-bottom: 19px;
 }
 
 .title-with-required {
@@ -384,18 +387,20 @@ button {
   align-items: baseline;
   gap: 8px;
   min-width: 0;
+  flex: 1 1 auto;
 }
 
 .section-title h3 {
   margin: 0;
-  font-size: 21px;
+  font-size: 23px;
   font-weight: var(--fw-section);
   line-height: 1.15;
+  white-space: nowrap;
 }
 
 .required {
   color: var(--orange);
-  font-size: 14px;
+  font-size: 15px;
   font-weight: var(--fw-strong);
   white-space: nowrap;
 }
@@ -404,6 +409,7 @@ button {
   display: inline-flex;
   align-items: center;
   gap: 3px;
+  flex: 0 0 auto;
   color: var(--soft);
   background: transparent;
   border: 0;
@@ -415,19 +421,26 @@ button {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  min-height: 48px;
-  padding-bottom: 10px;
+  min-height: 58px;
+  padding-bottom: 13px;
   border-bottom: 1px solid var(--line);
-  font-size: 21px;
+  font-size: 24px;
   font-weight: var(--fw-section);
 }
 
 .alert-copy {
-  margin: -4px 0 17px;
+  margin: -6px 0 19px;
   color: var(--red);
-  font-size: 13px;
+  font-size: 15px;
   font-weight: 730;
-  line-height: 1.45;
+  line-height: 1.5;
+}
+
+.alert-copy,
+.tip-card p,
+.media-card label,
+.add-card span {
+  overflow-wrap: anywhere;
 }
 
 .alert-copy span {
@@ -439,20 +452,20 @@ button {
 }
 
 .tip-card {
-  margin: 0 4px 25px;
-  padding: 17px 20px 18px;
+  margin: 0 2px 28px;
+  padding: 20px 20px 22px;
   background: #fff;
   border: 1px solid #eef0f2;
-  border-radius: 8px;
-  box-shadow: 0 17px 24px rgba(24, 32, 42, 0.07);
+  border-radius: 9px;
+  box-shadow: 0 17px 28px rgba(24, 32, 42, 0.08);
 }
 
 .tip-head {
   display: flex;
   align-items: center;
-  gap: 9px;
+  gap: 12px;
   color: #343941;
-  font-size: 17px;
+  font-size: 20px;
   font-weight: var(--fw-section);
 }
 
@@ -469,11 +482,11 @@ button {
 }
 
 .tip-card p {
-  margin: 15px 0 0 36px;
+  margin: 18px 0 0 38px;
   color: #62666d;
-  font-size: 15px;
+  font-size: 17px;
   font-weight: 660;
-  line-height: 1.68;
+  line-height: 1.65;
 }
 
 .tip-card b {
@@ -483,10 +496,12 @@ button {
 
 .media-grid {
   display: grid;
+  width: 100%;
+  max-width: 100%;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 0;
   align-items: stretch;
-  height: 112px;
+  height: 132px;
   background: #fff;
   border: 1px solid #f2f2f2;
   box-shadow: 0 5px 13px rgba(20, 20, 20, 0.03);
@@ -506,6 +521,7 @@ button {
 .add-card {
   position: relative;
   min-width: 0;
+  max-width: 100%;
 }
 
 .thumb,
@@ -575,17 +591,17 @@ button {
 .media-grid.is-completed .delete-chip {
   right: 7px;
   top: 7px;
-  width: 25px;
-  height: 25px;
+  width: 28px;
+  height: 28px;
   color: #fff;
   background: rgba(42, 42, 42, 0.72);
 }
 
 .media-card label {
   display: block;
-  padding-top: 6px;
+  padding-top: 8px;
   overflow: hidden;
-  font-size: 13px;
+  font-size: 15px;
   font-weight: 700;
   text-align: center;
   text-overflow: ellipsis;
@@ -593,9 +609,9 @@ button {
 }
 
 .media-grid.is-completed .media-card label {
-  padding-top: 4px;
+  padding-top: 7px;
   color: #111;
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 560;
 }
 
@@ -612,7 +628,7 @@ button {
   grid-template-rows: 1fr auto;
   align-content: initial;
   gap: 0;
-  padding: 18px 4px 16px;
+  padding: 20px 4px 17px;
   color: #30343a;
 }
 
@@ -629,13 +645,13 @@ button {
 }
 
 .add-card span {
-  font-size: 15px;
+  font-size: 17px;
   font-weight: var(--fw-section);
 }
 
 .media-grid.is-completed .add-card span {
   color: #31343a;
-  font-size: 14px;
+  font-size: 15px;
   font-weight: var(--fw-strong);
 }
 
@@ -646,8 +662,8 @@ button {
 .radio-row {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 8px;
-  margin-top: -7px;
+  gap: 6px;
+  margin-top: -8px;
 }
 
 .radio-button {
@@ -655,20 +671,20 @@ button {
   align-items: center;
   gap: 6px;
   justify-content: flex-start;
-  min-height: 38px;
+  min-height: 45px;
   color: #4b525c;
   background: transparent;
   border: 0;
   border-radius: 0;
-  font-size: 14px;
+  font-size: 15px;
   font-weight: 680;
 }
 
 .radio-button::before {
   content: "";
-  width: 18px;
-  height: 18px;
-  border: 1.5px solid #d8d8d8;
+  width: 22px;
+  height: 22px;
+  border: 2px solid #d8d8d8;
   border-radius: 999px;
 }
 
@@ -679,15 +695,15 @@ button {
 }
 
 .radio-button.is-active::before {
-  border: 4.5px solid var(--orange);
+  border: 5px solid var(--orange);
 }
 
 .doc-upload {
   display: grid;
   place-items: center;
   width: 100%;
-  min-height: 160px;
-  margin-top: 15px;
+  min-height: 198px;
+  margin-top: 20px;
   color: #444a53;
   background: #fff;
   border: 1px solid #f3f3f3;
@@ -696,13 +712,13 @@ button {
 }
 
 .doc-upload .ui-icon {
-  width: 54px !important;
-  height: 54px !important;
+  width: 66px !important;
+  height: 66px !important;
 }
 
 .doc-upload span {
-  margin-top: 10px;
-  font-size: 17px;
+  margin-top: 13px;
+  font-size: 21px;
 }
 
 .field-card {
@@ -731,10 +747,10 @@ button {
   inset: auto 0 0;
   z-index: 12;
   display: grid;
-  grid-template-columns: 72px 1fr;
-  gap: 16px;
+  grid-template-columns: 72px minmax(0, 1fr);
+  gap: 10px;
   align-items: center;
-  padding: 13px 18px 17px;
+  padding: 13px 18px 18px;
   background: rgba(255, 255, 255, 0.98);
   border-top: 0;
 }
@@ -746,17 +762,19 @@ button {
   color: #4f5660;
   background: transparent;
   border: 0;
-  font-size: 12px;
+  font-size: 14px;
   font-weight: 720;
 }
 
 .primary-cta {
-  min-height: 57px;
+  width: 100%;
+  min-width: 0;
+  min-height: 60px;
   color: #fff;
   background: linear-gradient(90deg, #ff5a2b, #ffb131);
   border: 0;
   border-radius: 999px;
-  font-size: 20px;
+  font-size: 22px;
   font-weight: var(--fw-title);
 }
 
@@ -799,6 +817,40 @@ button {
   background:
     radial-gradient(circle at 76% 18%, rgba(255, 255, 255, 0.26), transparent 24%),
     linear-gradient(100deg, #9a9595 0%, #b2b0ad 45%, #d5d5d2 100%);
+}
+
+.live-camera-feed {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0;
+  transition: opacity 180ms ease;
+}
+
+.camera-stage.is-live .live-camera-feed,
+.video-stage.is-live .live-camera-feed {
+  opacity: 1;
+}
+
+.camera-stage.is-live .camera-permission-copy,
+.video-stage.is-live .camera-permission-copy {
+  display: none;
+}
+
+.camera-permission-copy {
+  position: absolute;
+  left: 22px;
+  right: 22px;
+  top: 72px;
+  z-index: 2;
+  margin: 0;
+  color: rgba(255, 255, 255, 0.86);
+  font-size: 13px;
+  font-weight: var(--fw-strong);
+  line-height: 1.45;
+  text-align: center;
 }
 
 .camera-stage::before {
@@ -904,14 +956,16 @@ button {
 
 .camera-controls {
   display: grid;
-  grid-template-columns: 86px 1fr 86px;
+  grid-template-columns: 72px minmax(0, 1fr) 72px;
   align-items: center;
   min-height: 104px;
-  padding: 14px 20px 8px;
+  padding: 14px 18px 8px;
   background: #000;
 }
 
 .mask-toggle {
+  justify-self: start;
+  width: 68px;
   display: grid;
   justify-items: center;
   gap: 4px;
@@ -936,12 +990,16 @@ button {
   border: 7px solid #cfd4da;
   border-radius: 999px;
   box-shadow: 0 0 0 6px rgba(255, 255, 255, 0.16);
+  cursor: pointer;
+  padding: 0;
 }
 
 .counter-finish {
   display: grid;
+  justify-self: end;
   justify-items: center;
   gap: 7px;
+  width: 62px;
 }
 
 .counter-finish strong {
@@ -950,7 +1008,7 @@ button {
 }
 
 .finish-small {
-  min-width: 64px;
+  min-width: 58px;
   min-height: 40px;
   color: #fff;
   background: var(--orange);
@@ -1237,6 +1295,11 @@ button {
   opacity: 1;
 }
 
+.segment-step.is-active span,
+.segment-step.is-active b {
+  display: none;
+}
+
 .video-stage {
   position: relative;
   height: 554px;
@@ -1282,6 +1345,10 @@ button {
   text-align: center;
 }
 
+.video-permission-copy {
+  top: 96px;
+}
+
 .record-timer {
   justify-self: start;
   min-width: 46px;
@@ -1295,7 +1362,7 @@ button {
 
 .video-controls {
   display: grid;
-  grid-template-columns: 1fr 92px 1fr;
+  grid-template-columns: 72px minmax(0, 1fr) 72px;
   align-items: center;
   min-height: 104px;
   padding: 13px 18px 0;
@@ -1312,6 +1379,8 @@ button {
   border: 8px solid rgba(255, 210, 210, 0.95);
   border-radius: 999px;
   box-shadow: 0 0 0 7px rgba(96, 96, 96, 0.75);
+  cursor: pointer;
+  padding: 0;
 }
 
 .record-button.is-recording {
@@ -1320,7 +1389,7 @@ button {
 
 .next-video {
   justify-self: end;
-  min-width: 72px;
+  min-width: 58px;
   min-height: 40px;
   color: #fff;
   background: var(--orange);
@@ -1447,12 +1516,13 @@ button {
 
 @media (max-width: 860px) {
   .prototype-shell {
-    grid-template-columns: 1fr;
-    padding: 16px;
+    padding: 0;
   }
 
   .phone-frame {
-    justify-self: center;
+    width: 100vw;
+    max-width: 100vw;
+    flex-basis: 100vw;
   }
 
   .notes-panel {
