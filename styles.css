@@ -50,6 +50,15 @@ textarea {
   font-family: var(--font-ui);
 }
 
+.native-file-input {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  cursor: pointer;
+}
+
 button {
   -webkit-tap-highlight-color: transparent;
 }
@@ -918,6 +927,8 @@ button {
 }
 
 .shutter {
+  position: relative;
+  display: block;
   justify-self: center;
   width: 70px;
   height: 70px;
@@ -957,7 +968,11 @@ button {
   background: #000;
 }
 
-.mode-tabs button {
+.mode-tabs button,
+.mode-tabs label {
+  position: relative;
+  display: grid;
+  place-items: center;
   min-height: 42px;
   color: #aab0b8;
   background: transparent;
@@ -966,7 +981,8 @@ button {
   font-weight: var(--fw-strong);
 }
 
-.mode-tabs button.is-active {
+.mode-tabs button.is-active,
+.mode-tabs label.is-active {
   color: #fff;
   border-color: #fff;
 }
@@ -1287,6 +1303,8 @@ button {
 }
 
 .record-button {
+  position: relative;
+  display: block;
   justify-self: center;
   width: 70px;
   height: 70px;

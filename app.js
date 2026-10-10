@@ -438,7 +438,9 @@ function cameraView() {
             </div>
             <div class="camera-controls">
         <button class="mask-toggle ${state.maskPlate ? "is-active" : ""}" data-action="mask" type="button">${icon("scan-face", 22)}번호판가림</button>
-              <button class="shutter" data-action="shutter" type="button" aria-label="촬영"></button>
+              <label class="shutter" aria-label="촬영">
+                <input class="native-file-input" type="file" accept="image/*" capture="environment" data-file-action="photo-camera" />
+              </label>
               <div class="counter-finish">
                 <strong>${state.photos.length}/30</strong>
                 <button class="finish-small" data-action="finish-camera" type="button">완료</button>
@@ -448,7 +450,7 @@ function cameraView() {
 
       <div class="mode-tabs">
         <button class="${!albumMode ? "is-active" : ""}" data-action="mode-camera" type="button">촬영</button>
-        <button class="${albumMode ? "is-active" : ""}" data-action="mode-album" type="button">앨범</button>
+        <label class="${albumMode ? "is-active" : ""}">앨범<input class="native-file-input" type="file" accept="image/*" multiple data-file-action="photo-album" /></label>
       </div>
       ${androidNav()}
       ${toastLayer()}
@@ -522,7 +524,9 @@ function videoView() {
       </div>
       <div class="video-controls">
         <span class="record-timer">${state.videoRecording ? "00:08" : ""}</span>
-        <button class="record-button ${state.videoRecording ? "is-recording" : ""}" data-action="record" type="button" aria-label="녹화"></button>
+        <label class="record-button ${state.videoRecording ? "is-recording" : ""}" aria-label="녹화">
+          <input class="native-file-input" type="file" accept="video/*" capture="environment" data-file-action="video-camera" />
+        </label>
         <button class="next-video" data-action="video-next" type="button">${state.videoSegment === 3 ? "완료" : "다음"}</button>
       </div>
       <div class="mode-tabs video-mode-tabs">
@@ -590,6 +594,34 @@ function render() {
 }
 
 function bindEvents() {
+  screen.querySelectorAll("[data-file-action]").forEach((input) => {
+    input.addEventListener("change", (event) => {
+      const target = event.currentTarget;
+      const action = target.dataset.fileAction;
+      if (action === "photo-camera") {
+        const file = target.files?.[0];
+        if (file) addPhotoFromFile(state.activeSlot, file);
+      }
+      if (action === "photo-album") {
+        Array.from(target.files || []).forEach((file) => addPhotoFromFile(firstMissingSlot(), file, false));
+        if (state.photos.length) {
+          state.cameraMode = "camera";
+          showToast("앨범 사진이 추가되었습니다");
+        }
+      }
+      if (action === "video-camera") {
+        const file = target.files?.[0];
+        if (file) {
+          state.videoRecording = false;
+          state.videoDone = true;
+          state.progress = Math.max(state.progress, 42);
+          showToast("영상이 등록되었습니다");
+        }
+      }
+      target.value = "";
+    });
+  });
+
   screen.querySelectorAll("[data-action]").forEach((element) => {
     element.addEventListener("click", (event) => {
       event.stopPropagation();
