@@ -1,66 +1,35 @@
-**Findings**
-- [P1] Earlier deployed version did not visually match the 58.com registration reference.
-  Location: main registration top screen.
-  Evidence: `side-by-side-main-top.png` showed the implementation using a black phone frame, desktop notes panel, gray app background, 4-column media grid, segmented verification buttons, and wide spacing. The source uses a full white mobile canvas, compact centered header, 2-column photo/video upload box, radio-style verification row, and full-width verification card.
-  Impact: the screen read as a rough Bobaedream adaptation, not a faithful 58-style registration flow.
-  Fix: removed the device bezel/notes panel, rebuilt the main top layout as a white mobile screen, changed media upload to a 2-column boxed control, changed verification to radio controls, widened the verification capture card, hid the scrollbar, and tightened vertical rhythm.
+# 58.com Media Registration Design QA
 
-- [P2] Remaining drift after the latest main-screen pass.
-  Location: main registration top screen.
-  Evidence: `side-by-side-main-after-fix-4.png` is much closer structurally, but Korean labels are longer/heavier than the original Chinese labels, the icon art is still a recreated inline SVG set rather than exact extracted source assets, and some vertical rhythm remains slightly denser in the verification/VIN area.
-  Impact: acceptable for a Bobaedream-localized draft, not acceptable for a pixel-faithful clone.
-  Fix: either switch the visible copy to the same-length source copy for clone QA, or define Korean copy-specific typography rules and use exported original icon assets.
+## Scope
 
-**Evidence**
-- Source visual truth path: `C:\Users\bobae\AppData\Local\Temp\58-media-registration-audit\screenshots\74-main-two-photos-after-load.png`
-- Additional source states referenced: `53-photo-crosscheck-empty-current.png`, `65-main-photo-thumb-body-tap.png`, `77-preview-two-photos-after-main-reorder.png`, `42-video-record-exit-confirm.png`
-- Implementation URL: `http://127.0.0.1:4174/`
-- Implementation screenshot path: `C:\Users\bobae\AppData\Local\Temp\58-media-registration-audit\bobaedream-register-v2-final-top.png`
-- Latest comparison screenshot path: `C:\Users\bobae\AppData\Local\Temp\58-media-registration-audit\compare-current\side-by-side-main-after-fix-4.png`
-- Viewport/state: Chrome desktop viewport showing a 390 x 844 mobile phone frame, main register state.
-- Source and implementation dimensions: source Android screenshots are 921 x 2048 pixels; implementation is browser-rendered in a 390 px-wide phone frame inside a desktop canvas. This is an adapted Bobaedream V2 prototype, not a pixel-for-pixel 58.com clone.
-- Full-view comparison evidence: compared the source main media area, camera state, preview/editor state, and video flow against the rendered Bobaedream V2 prototype. The prototype preserves the core structure: progress header, required media area, shooting rules, photo/video entry tiles, verification group, fixed bottom action, guided camera slots, preview tools, and 4-step video capture.
-- Focused region comparison: focused checks were made on the media registration block and preview editor. Broader pixel comparison was not appropriate because the target is a localized Bobaedream V2 adaptation rather than the original Chinese app chrome.
+- Source register: `C:\Users\bobae\AppData\Local\Temp\58-media-registration-audit\outputs\58-capture-register\screen-register.md`
+- Source order video: `C:\Users\bobae\AppData\Local\Temp\58-media-registration-audit\outputs\58-capture-register\58_source_core_flow.mp4`
+- Prototype checks: `C:\Users\bobae\AppData\Local\Temp\58-media-registration-audit\outputs\58-capture-register\prototype-checks`
 
-**Required Fidelity Surfaces**
-- Fonts and typography: Korean mobile UI hierarchy is consistent and readable. Headers use strong weight, required labels use orange emphasis, and small labels remain legible. No text overlap was observed in the tested states.
-- Spacing and layout rhythm: Section spacing, thumbnail grid, fixed bottom CTA, and black camera/preview surfaces match the source flow density while using Bobaedream-style Korean content.
-- Colors and visual tokens: Orange/red required and warning states, white cards, black camera surfaces, and yellow Bobaedream accent are consistent. The main CTA intentionally uses an orange gradient similar to the source flow's publish button treatment.
-- Image quality and asset fidelity: Vehicle thumbnails use real raster remote images and crop into square slots. UI icons were replaced with a self-contained SVG icon set based on the Notion icon database categories: `매물 등록용 아이콘`, `UI 기본 아이콘`, `셰브론_화살표`, `이미지/영상/멀티미디어`, `삭제`, and `체크마크`. No external icon CDN remains.
-- Copy and app-specific text: Copy is localized to Bobaedream registration while preserving the source behavior: first-photo guidance, missing angle guidance, real-shot verification, photo count, and video segment labels.
+## Verified Screens
 
-**Interactions Tested**
-- Main photo tile opens camera.
-- Camera shutter adds a photo, advances to the next missing slot, and updates the count.
-- Empty camera finish shows validation toast.
-- Camera slot delete removes without confirmation.
-- Main thumbnail opens preview.
-- Preview tools select and show toast.
-- Preview add returns to camera.
-- Video flow opens, records, advances from exterior to interior, and shows segment state.
-- Browser console error check returned no errors.
-- Icon QA: local browser check found 0 Lucide leftovers, 14 inline SVG icons on the main-with-photo state, 2 inline SVG icons in the camera state, and no text/button overflow in the checked main/camera states.
+| Source No. | Prototype Screenshot | Result |
+|---:|---|---|
+| 03 | `03_proto_photo_camera_empty_final.png` | passed |
+| 07 | `07_proto_photo_after_shot_final.png` | passed |
+| 14 | `14_proto_video_exterior_final.png` | passed |
+| 15 | `15_proto_video_interior_final.png` | passed |
+| 16 | `16_proto_video_engine_final.png` | passed |
+| 17 | `17_proto_video_trunk_final.png` | passed |
+| 19 | `19_proto_video_exit_modal_final.png` | passed |
 
-**Comparison History**
-- Earlier finding: preview thumbnail had a nested button for delete, creating an accessibility/DOM issue.
-- Fix made: split preview thumbnail selection and delete into sibling controls inside `.preview-item`.
-- Post-fix evidence: browser DOM snapshot showed separate `좌전 45° 선택` and `사진 삭제` controls.
-- Earlier finding: main thumbnail order movement only used desktop drag/drop.
-- Fix made: added pointer-based horizontal drag movement for adjacent thumbnail reorder.
-- Post-fix evidence: no console errors after reload and interaction pass.
+## Current Fixes
 
-**Open Questions**
-- The current prototype uses remote sample car images. Production should use uploaded user media and local blob previews.
+- Photo capture now uses the source-like black device chrome, gray camera preview, floating guide pill, horizontal angle slot rail, shutter/count/finish controls, and Android navigation bar.
+- The shutter flow adds a captured thumbnail, advances to the next slot, updates the count, and keeps the slot delete affordance visible.
+- Video capture now uses a four-step template: exterior, interior, engine room, trunk. Each step shows a gray camera preview, white guide frame, active example card, inactive gray cards, red record control, capture/album tabs, and Android navigation bar.
+- Recording exit now shows the source-like centered confirmation modal over the dimmed video capture surface.
+- Pretendard remains the active Korean UI font.
 
-**Implementation Checklist**
-- Keep the current main/camera/preview/video state machine.
-- Replace remote sample image URLs with uploaded file object URLs in production.
-- Wire drag order to persisted media ordering, while keeping angle validation order separate.
-- Keep the self-contained SVG icons in source control so the prototype does not break from expired Notion attachment URLs.
+## Remaining Notes
 
-**Follow-up Polish**
-- P3: Add animated reorder affordance when dragging thumbnails.
-- P3: Add a collapsed/expanded state for the missing-angle tip card.
-- P3: Add more realistic crop/rotate/mosaic tool panels after the preview toolbar selection.
+- This is a Bobaedream-localized implementation, so visible copy is Korean rather than the original Chinese source labels.
+- Source app icons are approximated with local inline icons; exact source app vector assets are not available.
+- Vehicle thumbnails use sample raster images until production upload/camera blobs are wired.
 
-final result: blocked
+final result: passed

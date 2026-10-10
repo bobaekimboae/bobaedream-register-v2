@@ -26,8 +26,21 @@ const state = {
   progress: 32,
   city: "서울",
   verification: "차량명판",
-  photos: [],
-  activeSlot: 0,
+  photos: [
+    {
+      id: "seed-front",
+      slot: 1,
+      label: "차량 전면",
+      src: samplePhotos[0],
+    },
+    {
+      id: "seed-left-front",
+      slot: 0,
+      label: "좌전 45°",
+      src: samplePhotos[1],
+    },
+  ],
+  activeSlot: 2,
   cameraMode: "camera",
   maskPlate: false,
   previewIndex: 0,
@@ -42,6 +55,37 @@ const state = {
 };
 
 const screen = document.querySelector("#screenRoot");
+
+const demoParams = new URLSearchParams(window.location.search);
+if (demoParams.get("empty") === "1") {
+  state.photos = [];
+  state.activeSlot = 0;
+}
+if (["main", "camera", "preview", "video"].includes(demoParams.get("view"))) {
+  state.view = demoParams.get("view");
+  if (state.view === "preview" && !state.photos.length) state.view = "camera";
+}
+if (demoParams.has("videoSegment")) {
+  const segment = Number(demoParams.get("videoSegment"));
+  if (Number.isFinite(segment)) state.videoSegment = Math.max(0, Math.min(3, segment));
+}
+if (demoParams.get("modal") === "rules") state.modal = "rules";
+if (demoParams.get("modal") === "video-exit") {
+  state.view = "video";
+  state.videoRecording = true;
+  state.modal = "video-exit";
+}
+if (demoParams.get("shot") === "1") {
+  state.photos = [
+    {
+      id: "shot-left-front",
+      slot: 0,
+      label: "좌전 45°",
+      src: samplePhotos[0],
+    },
+  ];
+  state.activeSlot = 1;
+}
 
 const iconPaths = {
   "chevron-left": '<path d="M15.5 5 8.5 12l7 7"/>',
@@ -69,6 +113,7 @@ const iconPaths = {
   crop: '<path d="M7 3.8v13.2h13.2"/><path d="M3.8 7h13.2v13.2"/><path d="M17 7v-3.2"/><path d="M7 17H3.8"/>',
   plus: '<path d="M12 5v14"/><path d="M5 12h14"/>',
   play: '<path d="M8.5 5.8v12.4L18 12Z"/>',
+  zap: '<path d="M13.2 2.8 4.8 13h6.3l-1.1 8.2 8.8-11h-6.4Z"/>',
 };
 
 function icon(name, size = 21) {
@@ -197,19 +242,23 @@ function mainView() {
 
         <section class="section">
           <div class="section-title">
-            <div class="title-with-required"><h3>${completed ? "사진 등록 완료" : "사진/영상 등록"}</h3><span class="required">(필수)</span></div>
+            <div class="title-with-required"><h3>${completed ? "차량 사진 인식 완료" : "사진/영상 등록"}</h3><span class="required">(필수)</span></div>
             <button class="help-link" type="button" data-action="rules">${icon("circle-help", 16)} 촬영규칙</button>
           </div>
-          <p class="alert-copy">첫 사진은 좌전 45° 차량 사진을 사용하면 목록 노출 효과가 좋습니다.</p>
+          <p class="alert-copy">첫 사진은 좌전 45° 차량 사진을 사용하면 <span>목록 노출 효과가 좋습니다.</span></p>
           ${
             completed
-              ? `<div class="tip-card">
-                  <div class="tip-head">${icon("message-circle", 22)} 등록 가이드</div>
-                  <p>노출을 높이려면 기본 10개 각도를 채워주세요. 현재 부족한 추천 각도는 <b>${Math.max(0, 10 - state.photos.length)}</b>개입니다.</p>
+              ? `<div class="tip-card source-tip">
+                  <div class="tip-head">
+                    <span class="tip-icon">${icon("message-circle", 24)}</span>
+                    <span>게시 팁</span>
+                    <span class="tip-toggle">${icon("chevron-right", 18)}</span>
+                  </div>
+                  <p>노출을 높이려면 차량 각도 사진을 모두 올려주세요. 시스템 기준으로 아직 <b>${Math.max(0, 10 - state.photos.length)}</b>개 각도가 부족합니다.</p>
                 </div>`
               : ""
           }
-          <div class="media-grid" id="mainMediaGrid">
+          <div class="media-grid ${completed ? "is-completed" : "is-empty"}" id="mainMediaGrid">
             ${state.photos
               .map(
                 (photo, index) => `
@@ -292,7 +341,7 @@ function cameraView() {
                 .join("")}
              </div>`
           : `<div class="camera-stage">
-              <div class="guide-pill">${slots[state.activeSlot]} 촬영</div>
+              <div class="guide-pill">촬영 ${slots[state.activeSlot]}</div>
             </div>
             <div class="slot-rail">
               ${slots
@@ -319,6 +368,7 @@ function cameraView() {
         <button class="${!albumMode ? "is-active" : ""}" data-action="mode-camera" type="button">촬영</button>
         <button class="${albumMode ? "is-active" : ""}" data-action="mode-album" type="button">앨범</button>
       </div>
+      ${androidNav()}
       ${toastLayer()}
     </div>`;
 }
@@ -362,38 +412,49 @@ function previewView() {
           .join("")}
         <button class="preview-finish" data-action="preview-finish" type="button">완료</button>
       </div>
+      ${androidNav()}
       ${toastLayer()}
     </div>`;
 }
 
 function videoView() {
-  const segmentNames = ["외관", "실내", "엔진룸", "트렁크"];
+  const segmentNames = ["차량외관", "차내장식", "엔진룸", "트렁크"];
   return `
     <div class="video-view">
       <header class="dark-topbar">
         <button class="icon-button dark-button" data-action="video-close" aria-label="닫기">${icon("x", 30)}</button>
         <h2>차량 영상</h2>
-        <span></span>
+        <button class="icon-button dark-button flash-button" type="button" aria-label="플래시">${icon("zap", 31)}</button>
       </header>
+      <div class="video-stage">
+        <div class="guide-pill">촬영 ${segmentNames[state.videoSegment]}</div>
+        <div class="video-frame-line"></div>
+        <p class="video-guide-copy">촬영 항목이 맞는지 확인해 주세요</p>
+      </div>
       <div class="video-segments">
         ${segmentNames
           .map(
-            (name, index) => `<button class="segment-step ${state.videoSegment === index ? "is-active" : ""}" data-action="video-segment" data-index="${index}" type="button">${name}</button>`,
+            (name, index) => `<button class="segment-step ${state.videoSegment === index ? "is-active" : ""}" data-action="video-segment" data-index="${index}" type="button" style="--segment-image:url('${samplePhotos[index % samplePhotos.length]}')"><span>${index === state.videoSegment ? "예시" : ""}</span><b>${name}</b></button>`,
           )
           .join("")}
       </div>
-      <div class="video-stage">
-        <div class="record-timer">${state.videoRecording ? "00:08 녹화 중" : `${segmentNames[state.videoSegment]} 촬영 준비`}</div>
-        <div class="video-frame-line"></div>
-      </div>
       <div class="video-controls">
-        <span></span>
+        <span class="record-timer">${state.videoRecording ? "00:08" : ""}</span>
         <button class="record-button ${state.videoRecording ? "is-recording" : ""}" data-action="record" type="button" aria-label="녹화"></button>
         <button class="next-video" data-action="video-next" type="button">${state.videoSegment === 3 ? "완료" : "다음"}</button>
       </div>
+      <div class="mode-tabs video-mode-tabs">
+        <button class="is-active" type="button">촬영</button>
+        <button type="button">앨범</button>
+      </div>
+      ${androidNav()}
       ${modalLayer()}
       ${toastLayer()}
     </div>`;
+}
+
+function androidNav() {
+  return `<div class="android-nav" aria-hidden="true"><span class="nav-square"></span><span class="nav-circle"></span><span class="nav-triangle"></span></div>`;
 }
 
 function modalLayer() {
@@ -437,6 +498,7 @@ function toastLayer() {
 }
 
 function render() {
+  screen.closest(".phone-frame").dataset.view = state.view;
   if (state.view === "camera") screen.innerHTML = cameraView();
   if (state.view === "preview") screen.innerHTML = previewView();
   if (state.view === "video") screen.innerHTML = videoView();
