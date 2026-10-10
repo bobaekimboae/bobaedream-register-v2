@@ -39,12 +39,14 @@ const state = {
       slot: 1,
       label: "차량 전면",
       src: samplePhotos[0],
+      edits: defaultPhotoEdits(),
     },
     {
       id: "seed-left-front",
       slot: 0,
       label: "좌전 45°",
       src: samplePhotos[1],
+      edits: defaultPhotoEdits(),
     },
   ],
   activeSlot: 2,
@@ -102,6 +104,7 @@ if (demoParams.get("shot") === "1") {
       slot: 0,
       label: "좌전 45°",
       src: samplePhotos[0],
+      edits: defaultPhotoEdits(),
     },
   ];
   state.activeSlot = 1;
@@ -113,6 +116,7 @@ if (demoParams.has("photos")) {
     slot: index,
     label: slots[index] || `기타 ${index + 1}`,
     src: samplePhotos[index % samplePhotos.length],
+    edits: defaultPhotoEdits(),
   }));
   state.activeSlot = firstMissingSlot();
 }
@@ -149,6 +153,35 @@ const iconPaths = {
 function icon(name, size = 21) {
   const path = iconPaths[name] || iconPaths["circle-help"];
   return `<svg class="ui-icon ui-icon-${name}" viewBox="0 0 24 24" aria-hidden="true" style="width:${size}px;height:${size}px">${path}</svg>`;
+}
+
+function defaultPhotoEdits() {
+  return {
+    plate: false,
+    mosaic: false,
+    rotate: 0,
+    crop: 0,
+  };
+}
+
+function photoEdits(photo) {
+  if (!photo.edits) photo.edits = defaultPhotoEdits();
+  return photo.edits;
+}
+
+function photoLayerStyle(photo) {
+  const edits = photoEdits(photo);
+  const cropScales = [1, 1.14, 1.28];
+  const scale = cropScales[edits.crop] || 1;
+  return `background-image:url('${photo.src}');transform:rotate(${edits.rotate}deg) scale(${scale})`;
+}
+
+function photoEditBadges(photo) {
+  const edits = photoEdits(photo);
+  return `
+    ${edits.plate ? '<span class="plate-mask" aria-hidden="true"></span>' : ""}
+    ${edits.mosaic ? '<span class="mosaic-mask" aria-hidden="true"></span>' : ""}
+  `;
 }
 
 function updateIcons() {
@@ -307,6 +340,7 @@ function addPhotoFromDataUrl(slot = state.activeSlot, src) {
     slot,
     label: slots[slot] || `기타 ${state.photos.length + 1}`,
     src,
+    edits: defaultPhotoEdits(),
   });
   state.activeSlot = firstMissingSlot();
   state.progress = Math.max(state.progress, 38);
@@ -425,6 +459,7 @@ function addPhoto(slot = state.activeSlot) {
     slot,
     label: slots[slot],
     src: samplePhotos[state.photos.length % samplePhotos.length],
+    edits: defaultPhotoEdits(),
   };
   state.photos.push(photo);
   state.activeSlot = firstMissingSlot();
@@ -446,6 +481,7 @@ function addPhotoFromFile(slot = state.activeSlot, file, shouldRender = true) {
     label: slots[slot] || `기타 ${state.photos.length + 1}`,
     src: URL.createObjectURL(file),
     fileName: file.name,
+    edits: defaultPhotoEdits(),
   };
   state.photos.push(photo);
   state.activeSlot = firstMissingSlot();
@@ -673,6 +709,7 @@ function previewView() {
   if (!photo) {
     return mainView();
   }
+  const edits = photoEdits(photo);
   return `
     <div class="preview-view">
       <header class="dark-topbar">
@@ -680,7 +717,10 @@ function previewView() {
         <h2>사진 미리보기(${state.previewIndex + 1})</h2>
         <span></span>
       </header>
-      <div class="preview-photo" style="background-image:url('${photo.src}')"></div>
+      <div class="preview-photo">
+        <div class="preview-photo-layer ${edits.mosaic ? "is-mosaic" : ""}" style="${photoLayerStyle(photo)}"></div>
+        ${photoEditBadges(photo)}
+      </div>
       <div class="preview-rail">
         <button class="preview-add" data-action="preview-add" type="button" aria-label="사진 추가">${icon("plus", 30)}</button>
         ${state.photos
@@ -696,13 +736,13 @@ function previewView() {
       </div>
       <div class="tool-row">
         ${[
-          ["plate", "scan-face", "번호판"],
-          ["mosaic", "grip", "모자이크"],
-          ["rotate", "rotate-cw", "회전"],
-          ["crop", "crop", "자르기"],
+          ["plate", "scan-face", "번호판", edits.plate],
+          ["mosaic", "grip", "모자이크", edits.mosaic],
+          ["rotate", "rotate-cw", "회전", edits.rotate !== 0],
+          ["crop", "crop", "자르기", edits.crop > 0],
         ]
           .map(
-            ([key, iconName, label]) => `<button class="edit-tool ${state.previewTool === key ? "is-active" : ""}" data-action="tool" data-tool="${key}" type="button">${icon(iconName, 28)}${label}</button>`,
+            ([key, iconName, label, active]) => `<button class="edit-tool ${state.previewTool === key || active ? "is-active" : ""}" data-action="tool" data-tool="${key}" type="button">${icon(iconName, 27)}${label}</button>`,
           )
           .join("")}
         <button class="preview-finish" data-action="preview-finish" type="button">완료</button>
@@ -913,8 +953,26 @@ function bindEvents() {
         showToast("사진이 삭제되었습니다");
       }
       if (action === "tool") {
-        state.previewTool = target.dataset.tool;
-        showToast(`${target.textContent.trim()} 도구 선택`);
+        const tool = target.dataset.tool;
+        const photo = state.photos[state.previewIndex];
+        const edits = photoEdits(photo);
+        state.previewTool = tool;
+        if (tool === "plate") {
+          edits.plate = !edits.plate;
+          showToast(edits.plate ? "번호판 가림 적용" : "번호판 가림 해제");
+        }
+        if (tool === "mosaic") {
+          edits.mosaic = !edits.mosaic;
+          showToast(edits.mosaic ? "모자이크 적용" : "모자이크 해제");
+        }
+        if (tool === "rotate") {
+          edits.rotate = (edits.rotate + 90) % 360;
+          showToast("사진을 회전했습니다");
+        }
+        if (tool === "crop") {
+          edits.crop = (edits.crop + 1) % 3;
+          showToast(edits.crop ? "자르기 영역 조정" : "자르기 원본 비율");
+        }
         render();
       }
       if (action === "video-close") {

@@ -1166,9 +1166,63 @@ button {
 }
 
 .preview-photo {
+  position: relative;
   height: 504px;
+  overflow: hidden;
+  background: #0a0a0a;
+}
+
+.preview-photo-layer {
+  position: absolute;
+  inset: 0;
   background-size: cover;
   background-position: center;
+  transition: transform 180ms ease, filter 180ms ease;
+}
+
+.preview-photo-layer.is-mosaic {
+  filter: saturate(0.92) contrast(0.95);
+}
+
+.plate-mask {
+  position: absolute;
+  left: 50%;
+  bottom: 112px;
+  z-index: 3;
+  width: 154px;
+  height: 46px;
+  background: rgba(17, 18, 20, 0.88);
+  border: 2px solid rgba(255, 255, 255, 0.36);
+  border-radius: 7px;
+  box-shadow: 0 8px 22px rgba(0, 0, 0, 0.34);
+  transform: translateX(-50%);
+}
+
+.plate-mask::after {
+  content: "번호판 가림";
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  color: rgba(255, 255, 255, 0.82);
+  font-size: 13px;
+  font-weight: var(--fw-strong);
+}
+
+.mosaic-mask {
+  position: absolute;
+  left: 50%;
+  top: 42%;
+  z-index: 2;
+  width: 150px;
+  height: 116px;
+  border-radius: 8px;
+  background:
+    linear-gradient(45deg, rgba(255, 255, 255, 0.18) 25%, transparent 25% 50%, rgba(255, 255, 255, 0.18) 50% 75%, transparent 75%) 0 0 / 18px 18px,
+    rgba(25, 27, 30, 0.42);
+  backdrop-filter: blur(7px);
+  border: 1px solid rgba(255, 255, 255, 0.28);
+  transform: translate(-50%, -50%);
 }
 
 .preview-rail {
@@ -1237,20 +1291,23 @@ button {
 
 .tool-row {
   display: grid;
-  grid-template-columns: repeat(4, 1fr) 96px;
+  grid-template-columns: repeat(4, minmax(0, 1fr)) 64px;
   align-items: center;
-  gap: 4px;
-  padding: 14px 12px;
+  gap: 3px;
+  padding: 12px 8px;
+  overflow: hidden;
 }
 
 .edit-tool {
   display: grid;
   justify-items: center;
-  gap: 5px;
+  gap: 4px;
+  min-width: 0;
+  min-height: 44px;
   color: #8f96a0;
   background: transparent;
   border: 0;
-  font-size: 12px;
+  font-size: 10px;
   font-weight: var(--fw-strong);
 }
 
@@ -1259,12 +1316,13 @@ button {
 }
 
 .preview-finish {
-  min-height: 48px;
+  width: 100%;
+  min-height: 44px;
   color: #fff;
   background: var(--orange);
   border: 0;
   border-radius: 999px;
-  font-size: 18px;
+  font-size: 16px;
   font-weight: var(--fw-title);
 }
 
