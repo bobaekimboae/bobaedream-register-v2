@@ -81,6 +81,9 @@ if (["main", "camera", "preview", "video"].includes(demoParams.get("view"))) {
   state.view = demoParams.get("view");
   if (state.view === "preview" && !state.photos.length) state.view = "camera";
 }
+if (["camera", "album"].includes(demoParams.get("cameraMode"))) {
+  state.cameraMode = demoParams.get("cameraMode");
+}
 if (demoParams.has("videoSegment")) {
   const segment = Number(demoParams.get("videoSegment"));
   if (Number.isFinite(segment)) state.videoSegment = Math.max(0, Math.min(3, segment));
@@ -144,6 +147,11 @@ function updateIcons() {
 function setView(view) {
   state.view = view;
   state.modal = null;
+  render();
+}
+
+function setCameraMode(mode) {
+  state.cameraMode = mode;
   render();
 }
 
@@ -606,7 +614,7 @@ function cameraView() {
 
       ${
         albumMode
-          ? `<div class="guide-pill">우선 등록 각도: 좌전45° · 정면 · 우전45° · 측면</div>
+          ? `<div class="album-guide-pill">우선 등록 각도: 좌전45° · 정면 · 우전45° · 측면</div>
              <div class="album-grid">
               ${samplePhotos
                 .map(
@@ -642,7 +650,7 @@ function cameraView() {
 
       <div class="mode-tabs">
         <button class="${!albumMode ? "is-active" : ""}" data-action="mode-camera" type="button">촬영</button>
-        <label class="${albumMode ? "is-active" : ""}">앨범<input class="native-file-input" type="file" accept="image/*" multiple data-file-action="photo-album" /></label>
+        <button class="${albumMode ? "is-active" : ""}" data-action="mode-album" type="button">앨범</button>
       </div>
       ${androidNav()}
       ${toastLayer()}
@@ -867,13 +875,10 @@ function bindEvents() {
         }
       }
       if (action === "mode-camera") {
-        state.cameraMode = "camera";
-        render();
+        setCameraMode("camera");
       }
       if (action === "mode-album") {
-        state.cameraMode = "album";
-        render();
-        openAlbumPicker();
+        setCameraMode("album");
       }
       if (action === "album-photo") {
         addPhoto(firstMissingSlot());
@@ -976,6 +981,32 @@ function bindEvents() {
       movePhoto(from, to);
     });
   });
+
+  const cameraViewElement = screen.querySelector(".camera-view");
+  if (cameraViewElement) {
+    let swipeStartX = 0;
+    let swipeStartY = 0;
+    let swipeStartedOnRail = false;
+
+    cameraViewElement.addEventListener("pointerdown", (event) => {
+      swipeStartX = event.clientX;
+      swipeStartY = event.clientY;
+      swipeStartedOnRail = Boolean(event.target.closest(".slot-rail") || event.target.closest(".album-grid") || event.target.closest(".native-file-input"));
+    });
+
+    cameraViewElement.addEventListener("pointerup", (event) => {
+      if (swipeStartedOnRail) return;
+      const dx = event.clientX - swipeStartX;
+      const dy = event.clientY - swipeStartY;
+      if (Math.abs(dx) < 64 || Math.abs(dx) < Math.abs(dy) * 1.4) return;
+      if (state.cameraMode === "camera") {
+        setCameraMode("album");
+        showToast("앨범으로 이동했습니다");
+      } else {
+        setCameraMode("camera");
+      }
+    });
+  }
 }
 
 render();
