@@ -189,6 +189,15 @@ function setCameraMode(mode) {
   render();
 }
 
+function moveCameraMode(mode, message = "") {
+  state.cameraMode = mode;
+  if (message) {
+    showToast(message);
+  } else {
+    render();
+  }
+}
+
 function showToast(message) {
   state.toast = message;
   render();
@@ -957,10 +966,10 @@ function bindEvents() {
         }
       }
       if (action === "mode-camera") {
-        setCameraMode("camera");
+        moveCameraMode("camera");
       }
       if (action === "mode-album") {
-        setCameraMode("album");
+        moveCameraMode("album", "앨범으로 이동했습니다");
       }
       if (action === "album-photo") {
         addPhoto(firstMissingSlot());
@@ -1107,24 +1116,49 @@ function bindEvents() {
     let swipeStartY = 0;
     let swipeStartedOnRail = false;
 
+    const startSwipe = (clientX, clientY, target) => {
+      swipeStartX = clientX;
+      swipeStartY = clientY;
+      swipeStartedOnRail = Boolean(target.closest(".slot-rail") || target.closest(".album-grid") || target.closest(".mode-tabs") || target.closest(".native-file-input"));
+    };
+
+    const endSwipe = (clientX, clientY) => {
+      if (swipeStartedOnRail) return;
+      const dx = clientX - swipeStartX;
+      const dy = clientY - swipeStartY;
+      if (Math.abs(dx) < 64 || Math.abs(dx) < Math.abs(dy) * 1.4) return;
+      if (state.cameraMode === "camera") {
+        moveCameraMode("album", "앨범으로 이동했습니다");
+      } else {
+        moveCameraMode("camera");
+      }
+    };
+
     cameraViewElement.addEventListener("pointerdown", (event) => {
-      swipeStartX = event.clientX;
-      swipeStartY = event.clientY;
-      swipeStartedOnRail = Boolean(event.target.closest(".slot-rail") || event.target.closest(".album-grid") || event.target.closest(".native-file-input"));
+      startSwipe(event.clientX, event.clientY, event.target);
     });
 
     cameraViewElement.addEventListener("pointerup", (event) => {
-      if (swipeStartedOnRail) return;
-      const dx = event.clientX - swipeStartX;
-      const dy = event.clientY - swipeStartY;
-      if (Math.abs(dx) < 64 || Math.abs(dx) < Math.abs(dy) * 1.4) return;
-      if (state.cameraMode === "camera") {
-        setCameraMode("album");
-        showToast("앨범으로 이동했습니다");
-      } else {
-        setCameraMode("camera");
-      }
+      endSwipe(event.clientX, event.clientY);
     });
+
+    cameraViewElement.addEventListener(
+      "touchstart",
+      (event) => {
+        const touch = event.changedTouches[0];
+        if (touch) startSwipe(touch.clientX, touch.clientY, event.target);
+      },
+      { passive: true },
+    );
+
+    cameraViewElement.addEventListener(
+      "touchend",
+      (event) => {
+        const touch = event.changedTouches[0];
+        if (touch) endSwipe(touch.clientX, touch.clientY);
+      },
+      { passive: true },
+    );
   }
 }
 
